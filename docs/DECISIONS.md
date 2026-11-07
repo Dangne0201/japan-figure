@@ -114,4 +114,11 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 - Run expiry, fulfillment, and fake Mailpit notification jobs through BullMQ. The worker advances demo fulfillment quickly for local testing; all statuses and tracking identifiers are fictional.
 - Split new PostgreSQL enum values into a preceding migration because a newly added enum value cannot be used as a column default before its transaction commits. Keep migration timestamps after the existing checkout migration.
 - Cache only same-origin static assets and the static offline page in the PWA service worker; do not cache pages, APIs, or account/order data. Installation on a phone over LAN requires HTTPS; localhost is browser-trusted for local development.
+
+## 2026-11-07 — Phase 4 admin foundation and product images
+
+- Provision an admin account only when the seed command receives both `ADMIN_EMAIL` and `ADMIN_PASSWORD`; no built-in credentials or admin registration path are provided.
+- Restrict admin image uploads to validated WebP files up to 5 MiB and store them in a named local volume shared read-only with the web service. Product images remain local and untracked.
+- Generate Prisma Client in the non-production seed/migration image before switching to its non-root runtime user, so the profile-based seed command can construct PrismaClient.
+- Split Phase 4 after product/stock management and uploads; order operations, voucher/banner management, review moderation, customer controls, and remaining audit-log coverage form Part 2.
 - Re-resolve Docker service names from Nginx rather than pinning API/web container IPs, so replacing an application container does not require restarting the reverse proxy.

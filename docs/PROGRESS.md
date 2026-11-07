@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 3b — orders and payment simulation is complete and merged to `main` as `174383a`. Phase 4 is next.
+Phase 4 — Admin Part 1 is complete and verified on `phase/4-admin`; Part 2 is intentionally waiting for owner approval. Phase 3b is complete and merged to `main` as `d81c791`.
 
 ## Completed
 
@@ -20,6 +20,9 @@ Phase 3b — orders and payment simulation is complete and merged to `main` as `
 - Documented the address snapshot, commerce policies, and local run instructions in `README.md`, `DECISIONS.md`, and `ROADMAP.md`.
 - Started Phase 3b on a dedicated branch after publishing Phase 3a.
 - Phase 3b was self-reviewed, fully verified, published on `phase/3b-orders`, and fast-forward merged to `main` without a pull request.
+- Phase 4 is split at the admin product boundary: Part 1 covers role-protected admin foundation, dashboard, product/stock management, and validated local image uploads. Part 2 covers order operations, vouchers/banners, review moderation, customer controls, and the remaining audit-log coverage.
+- Phase 4 Part 1: added `/admin` dashboard and product editor, role-protected admin APIs, environment-only admin provisioning, reservation-safe stock updates, a persistent local WebP upload volume, generic placeholder fallback, and audit records for product/stock/image changes.
+- Added the admin audit migration and applied it without resetting or dropping existing local data. The seed container now generates Prisma Client before running the TypeScript seed.
 
 ## Verification
 
@@ -33,16 +36,19 @@ Phase 3b — orders and payment simulation is complete and merged to `main` as `
 - Phase 3b schema: generated Prisma Client, validated the schema, applied all eight ordered migrations, and confirmed the existing `SIMULATED` order remained intact with its required timestamp columns backfilled.
 - Local Phase 3b runtime flow passed through Compose: registered and verified a test account via Mailpit; created an address; placed and paid a reserved-stock transfer order; replayed the same payment event; observed worker processing, tracking, delivery and notification emails; submitted a pending verified-buyer review and return request; added/removed a wishlist item; and verified payment failure, COD cancellation, and worker expiry release commitments.
 - PWA endpoints return the manifest and service worker successfully. The optimized web build includes the account order and wishlist routes.
-- Final verification passed: formatting, lint, 12 API suites/41 tests, 4 web tests, API and web production builds, eight applied Prisma migrations, Compose health, and API-health/manifest/service-worker requests through the configured reverse proxy.
+- Phase 3b verification at completion: formatting, lint, 12 API suites/41 tests, 4 web tests, API and web production builds, eight applied migrations, Compose health, and API-health/manifest/service-worker requests through the configured reverse proxy.
+- Phase 4 Part 1 verification passed: formatting, lint, 14 API suites/46 tests, 4 web tests, API and web production builds, nine applied Prisma migrations, and all Compose services healthy.
+- Exercised the admin flow against Compose: environment-seeded temporary admin login, unauthenticated API denial, dashboard access, product creation, stock update, WebP upload and serving, product publish/pricing update, and public catalog visibility. Removed the temporary account and test product afterward.
+- Through the reverse proxy, `/admin`, `/api/health`, and `/manifest.webmanifest` returned HTTP 200.
 
 ## Known issues and limits
 
 - Commerce pages build and return HTTP 200, but an integrated-browser CDP timeout prevented a fresh phone-width visual check. The owner should complete the manual phone checklist before review.
 - Ollama is offline; this is non-fatal and does not affect Phase 3a or 3b.
 - Catalog prices, stock, JAN-like identifiers, and release dates are fictional demo data. `npm audit` has reported three high-severity issues through Prisma's `deepmerge-ts`; its automatic fix requires a breaking Prisma major upgrade and was not applied.
-- Integrated-browser CDP timed out again, so a fresh phone-width visual check could not be completed.
-- A fresh phone-width visual check remains a manual owner checklist item because the integrated browser could not connect.
+- A fresh phone-width visual review remains a manual owner checklist item; the admin API and route were runtime-verified, but no phone screenshot was captured.
+- The repository does not provision default admin credentials. The owner must set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the ignored `.env` and run `docker compose --profile tools run --rm seed`.
 
 ## Next step
 
-Begin Phase 4 — Admin on `phase/4-admin`; start with the role-protected admin foundation and product/stock management, then continue through the remaining roadmap scope.
+Phase 4 Part 1 is ready to publish and merge. Stop after that; begin Phase 4 Part 2 only when the owner asks to continue.

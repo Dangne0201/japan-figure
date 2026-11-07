@@ -35,6 +35,7 @@ services:
       SITE_URL: ${SITE_URL:-http://localhost:${APP_PORT:-8081}}
     volumes:
       - ./local-images:/app/local-images:ro
+      - product_uploads:/app/product-uploads:ro
     healthcheck:
       test:
         [
@@ -77,6 +78,9 @@ services:
       OLLAMA_CHAT_MODEL: ${OLLAMA_CHAT_MODEL:-qwen2.5:3b-instruct}
       OLLAMA_CHAT_FALLBACK_MODEL: ${OLLAMA_CHAT_FALLBACK_MODEL:-qwen2.5:1.5b-instruct}
       OLLAMA_EMBEDDING_MODEL: ${OLLAMA_EMBEDDING_MODEL:-bge-m3}
+      PRODUCT_UPLOAD_DIR: /app/product-uploads
+    volumes:
+      - product_uploads:/app/product-uploads
     extra_hosts:
       - 'host.docker.internal:host-gateway'
     depends_on:
@@ -98,6 +102,25 @@ services:
       start_period: 25s
     mem_limit: 768m
     restart: unless-stopped
+    networks:
+      - app
+
+  seed:
+    profiles: ['tools']
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+      target: migration
+    command: ['npm', 'run', 'db:seed', '--workspace', 'apps/api']
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-japan_figure}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/${POSTGRES_DB:-japan_figure}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 512m
+    restart: 'no'
     networks:
       - app
 
@@ -218,6 +241,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  product_uploads:
 
 networks:
   app:

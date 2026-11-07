@@ -23,9 +23,25 @@ export async function GET(_request: Request, context: { params: Promise<{ slug: 
     });
   }
 
+  const uploadedImage = await readFirstAvailable([
+    path.join(process.cwd(), 'product-uploads', `${slug}.webp`),
+    path.join(process.cwd(), '..', '..', 'product-uploads', `${slug}.webp`),
+  ]);
+  if (uploadedImage) {
+    return new Response(Uint8Array.from(uploadedImage), {
+      headers: {
+        'Content-Type': 'image/webp',
+        'Cache-Control': 'public, max-age=60',
+        'X-Content-Type-Options': 'nosniff',
+      },
+    });
+  }
+
   const placeholder = await readFirstAvailable([
     path.join(process.cwd(), 'public', 'products', `${slug}.svg`),
     path.join(process.cwd(), 'apps', 'web', 'public', 'products', `${slug}.svg`),
+    path.join(process.cwd(), 'public', 'products', 'placeholder.svg'),
+    path.join(process.cwd(), 'apps', 'web', 'public', 'products', 'placeholder.svg'),
   ]);
   if (!placeholder) return new Response('Not found', { status: 404 });
 

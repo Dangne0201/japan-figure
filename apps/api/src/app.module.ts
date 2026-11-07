@@ -10,6 +10,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AddressesModule } from './addresses/addresses.module';
 import { CartModule } from './cart/cart.module';
 import { CommerceModule } from './commerce/commerce.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CommerceModule } from './commerce/commerce.module';
     AuthModule,
     CartModule,
     CommerceModule,
+    AdminModule,
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

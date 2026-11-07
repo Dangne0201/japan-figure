@@ -14,6 +14,7 @@ RUN npm run build --workspace apps/api
 
 FROM dependencies AS migration
 COPY . .
+RUN npm run prisma:generate --workspace apps/api
 USER node
 CMD ["npm", "run", "prisma:migrate", "--workspace", "apps/api"]
 
@@ -26,6 +27,7 @@ RUN npm ci --omit=dev --omit=optional
 COPY --from=build /app/apps/api/dist apps/api/dist
 COPY --from=build /app/apps/api/prisma apps/api/prisma
 COPY --from=build /app/node_modules/.prisma node_modules/.prisma
+RUN mkdir -p /app/product-uploads && chown node:node /app/product-uploads
 USER node
 EXPOSE 3001
 CMD ["node", "apps/api/dist/main.js"]

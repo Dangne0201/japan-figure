@@ -34,9 +34,9 @@ Work is phase-based. The storefront and core buying experience take priority; ch
 
 ## Phase 4 — Admin
 
-- Role-protected `/admin` includes dashboard, product/stock management, order handling, vouchers, banners, review moderation, customers, and audit logs.
-- Image uploads validate size/type and store files in a local volume.
-- Admin credentials come only from environment configuration; authorization tests prove guests and normal users are denied.
+- **Part 1 complete:** role-protected `/admin` dashboard and product/stock management; WebP uploads validate type/size and use a local volume; admin credentials are provisioned only from environment configuration.
+- **Part 2 remaining:** order handling, vouchers, banners, review moderation, customer controls, and remaining audit-log coverage.
+- Authorization tests prove unauthenticated requests are denied and only admins can use the dashboard.
 
 ## Phase 5a — Chatbot knowledge and retrieval
 

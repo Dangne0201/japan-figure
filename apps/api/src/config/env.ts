@@ -26,6 +26,7 @@ const envSchema = z.object({
   OLLAMA_CHAT_MODEL: z.string().default('qwen2.5:3b-instruct'),
   OLLAMA_CHAT_FALLBACK_MODEL: z.string().default('qwen2.5:1.5b-instruct'),
   OLLAMA_EMBEDDING_MODEL: z.string().default('bge-m3'),
+  PRODUCT_UPLOAD_DIR: z.string().min(1).default('/app/product-uploads'),
 });
 
 export type AppConfig = z.infer<typeof envSchema>;

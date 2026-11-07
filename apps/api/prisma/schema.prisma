@@ -108,6 +108,7 @@ model User {
   reviews            Review[]
   orderStatusChanges OrderStatusHistory[] @relation("OrderStatusActor")
   returnRequests     ReturnRequest[]
+  adminAuditLogs     AdminAuditLog[]      @relation("AdminAuditActor")
   createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt          DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -550,4 +551,19 @@ model ProductImage {
   @@unique([productId, position])
   @@index([productId])
   @@map("product_images")
+}
+
+model AdminAuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?  @map("actor_user_id")
+  action      String   @db.VarChar(80)
+  entityType  String   @map("entity_type") @db.VarChar(80)
+  entityId    String?  @map("entity_id") @db.VarChar(64)
+  details     Json?
+  actor       User?    @relation("AdminAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([actorUserId, createdAt])
+  @@index([entityType, entityId, createdAt])
+  @@map("admin_audit_logs")
 }

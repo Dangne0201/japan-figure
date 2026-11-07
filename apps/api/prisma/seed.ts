@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { hash } from 'bcryptjs';
 import catalog from './seed-data/catalog.json';
 
 const prisma = new PrismaClient();
@@ -22,6 +23,7 @@ interface SeedProduct {
 }
 
 async function seed(): Promise<void> {
+  await seedAdminAccount();
   const voucherDefaults = [
     {
       code: 'FIGURE10',
@@ -183,6 +185,44 @@ async function seed(): Promise<void> {
   console.log(
     `Seeded ${catalog.brands.length} brands, ${catalog.series.length} series, and ${count} published products.`,
   );
+}
+
+async function seedAdminAccount(): Promise<void> {
+  const rawEmail = process.env.ADMIN_EMAIL?.trim() || undefined;
+  const password = process.env.ADMIN_PASSWORD || undefined;
+  if (rawEmail === undefined && password === undefined) return;
+  if (rawEmail === undefined || password === undefined) {
+    throw new Error('Set both ADMIN_EMAIL and ADMIN_PASSWORD to provision an admin account.');
+  }
+
+  const email = rawEmail.trim().toLowerCase();
+  if (
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/u.test(email) ||
+    email.length > 254 ||
+    password.length < 12 ||
+    password.length > 64 ||
+    Buffer.byteLength(password, 'utf8') > 72
+  ) {
+    throw new Error('ADMIN_EMAIL or ADMIN_PASSWORD does not meet the admin account requirements.');
+  }
+
+  const passwordHash = await hash(password, 12);
+  await prisma.user.upsert({
+    where: { email },
+    create: {
+      email,
+      name: 'Administrator',
+      passwordHash,
+      role: 'ADMIN',
+      emailVerifiedAt: new Date(),
+    },
+    update: {
+      passwordHash,
+      role: 'ADMIN',
+      emailVerifiedAt: new Date(),
+    },
+  });
+  console.log('Seeded the environment-configured admin account.');
 }
 
 seed()

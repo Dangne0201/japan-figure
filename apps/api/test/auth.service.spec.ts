@@ -25,6 +25,7 @@ const config: AppConfig = {
   OLLAMA_CHAT_MODEL: 'test-chat',
   OLLAMA_CHAT_FALLBACK_MODEL: 'test-fallback',
   OLLAMA_EMBEDDING_MODEL: 'test-embedding',
+  PRODUCT_UPLOAD_DIR: '/tmp/product-uploads',
 };
 
 const currentUser = {
