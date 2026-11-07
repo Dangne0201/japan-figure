@@ -28,7 +28,7 @@ Only self-made/generated placeholder images will be committed. Once catalog supp
 ## Environment checklist
 
 - Install Docker Desktop and enable the WSL2 backend. Start Docker Desktop and wait for its engine to become ready before using Compose.
-- Install Node.js LTS, Git, and GitHub CLI (`winget install --id GitHub.cli -e`). Then run `gh auth login` and `gh auth status` before repository publishing.
+- Install Node.js LTS and Git. GitHub CLI (`winget install --id GitHub.cli -e`) is optional; SourceTree or GitHub's website can be used to manage and publish the repository.
 - Create or edit `%UserProfile%\.wslconfig` with:
 
   ```ini

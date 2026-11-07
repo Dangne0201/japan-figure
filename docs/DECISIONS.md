@@ -30,6 +30,6 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 
 - Recommend moving the repository from Windows drive `F:` into the WSL2 Linux filesystem for faster dependency installs and file watching.
 - WSL reports only the `docker-desktop` distribution, currently stopped; a user development distribution has not been verified.
-- Node.js, npm, Docker CLI, Docker Compose, and Git are installed. GitHub CLI is missing. Ollama is not responding at `localhost:11434`.
-- Docker daemon availability remains unverified because `docker info` did not return during the check.
+- Node.js, npm, Docker CLI, Docker Compose, and Git are installed. GitHub CLI is missing but optional; authenticated Git push worked. Ollama is not responding at `localhost:11434`.
+- Docker Desktop engine returned HTTP 500 for the Docker Desktop Linux engine during `docker info`.
 - Vietnam administrative address dataset and current province/district/ward structure must be verified when implementing the address feature.
