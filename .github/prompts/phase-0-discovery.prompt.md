@@ -29,6 +29,6 @@ Run in the terminal and report: `node -v`, `npm -v`, `docker --version`, `docker
 - Enable sensible defaults you can set via `gh` (e.g. delete branch on merge); suggest branch protection steps for the owner if not settable.
 
 ## Step 5: Environment checklist for the owner (Windows)
-Docker Desktop with WSL2 backend, `.wslconfig` memory limit (~6GB), Ollama install, `ollama pull qwen2.5:3b-instruct`, `ollama pull qwen2.5:1.5b-instruct`, `ollama pull bge-m3`, how to find the laptop's LAN IP, how to open Windows Firewall for the web port (8080) on the private network only.
+Docker Desktop with WSL2 backend, `.wslconfig` memory limit (~6GB), Ollama install, `ollama pull qwen2.5:3b-instruct`, `ollama pull qwen2.5:1.5b-instruct`, `ollama pull bge-m3`, how to find the laptop's LAN IP, how to open Windows Firewall for the web port (8081) on the private network only.
 
 Update PROGRESS.md. End with the phase report and ask for approval to start phase 1.

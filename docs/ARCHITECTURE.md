@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-  Browser[Browser: laptop or phone on LAN] -->|HTTP :8080| Nginx
+  Browser[Browser: laptop or phone on LAN] -->|HTTP :8081| Nginx
   Nginx --> Web[Next.js web and admin]
   Web -->|REST /api| API[NestJS API]
   API --> PostgreSQL[(PostgreSQL + pgvector)]
@@ -22,7 +22,7 @@ flowchart LR
 
 | Service    | Responsibility                                                                                                 |
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
-| Nginx      | Single LAN-facing entry point; publishes configurable host port `8080` by default and routes web/API requests. |
+| Nginx      | Single LAN-facing entry point; publishes configurable host port `8081` by default and routes web/API requests. |
 | Web        | Next.js App Router storefront, customer account pages, and role-protected `/admin` UI.                         |
 | API        | NestJS REST API, validation, authentication, business rules, Swagger/OpenAPI, and request-ID logging.          |
 | Worker     | BullMQ jobs for simulated order progression, fake email, and product/document re-indexing.                     |
@@ -35,8 +35,8 @@ Services should use health checks and healthy-start ordering. Persistent data us
 
 ## Network and access
 
-- On the laptop, open `http://localhost:8080` by default.
-- For a phone on the same private Wi-Fi, open `http://<laptop-LAN-IP>:8080`; allow the web port through Windows Firewall only on the Private network profile.
+- On the laptop, open `http://localhost:8081` by default.
+- For a phone on the same private Wi-Fi, open `http://<laptop-LAN-IP>:8081`; allow the web port through Windows Firewall only on the Private network profile.
 - Containers reach host Ollama at `http://host.docker.internal:11434`.
 - If that connection fails on Windows, set `OLLAMA_HOST=0.0.0.0` for the host Ollama service and add a narrowly scoped Windows Firewall rule for the private network. The API should report an actionable, non-fatal health warning if Ollama is unavailable.
 - HTTPS is required by browsers for PWA installation on LAN; plain HTTP remains suitable for local development and ordinary browsing.

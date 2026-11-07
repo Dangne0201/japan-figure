@@ -40,3 +40,9 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 - The Compose development override enables hot reload and publishes only the Nginx web entry point plus Mailpit on loopback; API, PostgreSQL, and Redis remain internal to the Docker network.
 - Redis uses `noeviction`, as required for reliable BullMQ queue semantics. Prisma migrations run in a one-shot service before the API starts.
 - A separate Ubuntu distribution is optional; Docker Desktop's WSL2 backend is sufficient.
+
+## 2026-11-07 — Local web port
+
+- Set Japan Figure's default host web port to `8081` (still configurable with `APP_PORT`).
+- Reason: an existing stopped `booknest-app-1` container is configured to publish `127.0.0.1:8080`; running both projects simultaneously would conflict on port `8080`. No other active listener was using the new port during verification.
+- Nginx continues listening on container port `8080`; only the host-facing port changes.

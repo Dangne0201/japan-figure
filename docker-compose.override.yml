@@ -19,7 +19,7 @@ services:
       API_PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-japan_figure}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/${POSTGRES_DB:-japan_figure}
       REDIS_URL: redis://redis:6379
-      WEB_ORIGIN: http://localhost:${APP_PORT:-8080}
+      WEB_ORIGIN: http://localhost:${APP_PORT:-8081}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       MAIL_FROM: ${MAIL_FROM:-no-reply@japan-figure.local}

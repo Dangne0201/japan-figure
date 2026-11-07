@@ -11,7 +11,7 @@ A realistic local simulation of a Vietnamese online shop selling anime figures. 
 ## Stack (do not change without asking)
 - Frontend: Next.js (App Router) + TypeScript + Tailwind CSS. Mobile-first responsive, ONE UI for all devices. Admin lives in the same app under `/admin`.
 - Backend: NestJS + TypeScript + Prisma, REST API with OpenAPI/Swagger. Background jobs: BullMQ on Redis.
-- DB: PostgreSQL with extensions `vector` (pgvector), `unaccent`, `pg_trgm`. Redis for cache/session/rate-limit/queues. Nginx as reverse proxy (default host port 8080, configurable via env, because port 80 often conflicts on Windows).
+- DB: PostgreSQL with extensions `vector` (pgvector), `unaccent`, `pg_trgm`. Redis for cache/session/rate-limit/queues. Nginx as reverse proxy (default host port 8081, configurable via env, to avoid collisions with other local projects and port 80 conflicts on Windows).
 - Fake mailbox: Mailpit container. Never send real email.
 - LLM: Ollama running on the Windows HOST (not in Docker), reached via host.docker.internal:11434. Models via env: chat `qwen2.5:3b-instruct` (fallback `qwen2.5:1.5b-instruct`), embedding `bge-m3` (1024 dimensions). Provider swappable via env (LLM_PROVIDER=ollama|gemini). The chatbot answers only from local data (DB + `knowledge/` docs); no web access or web search.
 - Everything starts with `docker compose up`. Keep total container memory modest; set memory limits per service.

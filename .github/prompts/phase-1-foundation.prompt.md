@@ -6,7 +6,7 @@ Follow `.github/copilot-instructions.md`. Branch `phase/1-foundation`; PR to `ma
 
 Build the runnable foundation:
 - `apps/api` (NestJS) and `apps/web` (Next.js) scaffolds, TypeScript strict, ESLint, Prettier, shared config. Apply the style/brand decisions from DECISIONS.md to a Tailwind theme (design tokens).
-- `docker-compose.yml` (+ `docker-compose.override.yml` for dev with hot reload): nginx, web, api, worker (BullMQ, can share the api image), postgres (pgvector image), redis, mailpit. Healthchecks, named volumes, memory limits, healthy-start ordering. Nginx publishes the web port on 0.0.0.0 (default 8080) so phones on LAN can reach it; API, DB, Redis are not exposed to the host/LAN (Mailpit UI exposed on localhost only).
+- `docker-compose.yml` (+ `docker-compose.override.yml` for dev with hot reload): nginx, web, api, worker (BullMQ, can share the api image), postgres (pgvector image), redis, mailpit. Healthchecks, named volumes, memory limits, healthy-start ordering. Nginx publishes the web port on 0.0.0.0 (default 8081) so phones on LAN can reach it; API, DB, Redis are not exposed to the host/LAN (Mailpit UI exposed on localhost only).
 - Prisma setup; first migration enabling `vector`, `unaccent`, `pg_trgm`; `/api/health` checking DB, Redis and (non-fatally) Ollama; Swagger at `/api/docs`.
 - Logging with request IDs, global exception filter, env validation at startup.
 - `.env.example` fully documented.
