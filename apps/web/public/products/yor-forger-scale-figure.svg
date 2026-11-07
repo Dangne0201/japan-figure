@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-labelledby="title description">
+  <title id="title">Yor Forger — SPY x FAMILY</title>
+  <desc id="description">Original decorative placeholder artwork for Yor Forger, 1/7.</desc>
+  <defs>
+    <linearGradient id="wash" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#fffaf6"/><stop offset="1" stop-color="#d7e9e2"/></linearGradient>
+    <pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="3" cy="3" r="2" fill="#4c7776" opacity=".12"/></pattern>
+  </defs>
+  <rect width="800" height="1000" rx="48" fill="url(#wash)"/>
+  <rect width="800" height="1000" rx="48" fill="url(#dots)"/>
+  <circle cx="400" cy="410" r="210" fill="#fffaf6" opacity=".72"/>
+  <circle cx="400" cy="410" r="168" fill="none" stroke="#4c7776" stroke-width="2" opacity=".22"/>
+  <path d="M400 220 425 365 560 410 425 455 400 600 375 455 240 410 375 365Z" fill="#4c7776" opacity=".12"/>
+  <path d="M400 286c-55 0-98 43-98 98 0 39 22 70 54 86l-22 150h132l-22-150c32-16 54-47 54-86 0-55-43-98-98-98Z" fill="#4c7776" opacity=".2"/>
+  <circle cx="400" cy="386" r="54" fill="#fffaf6" stroke="#4c7776" stroke-width="5" opacity=".9"/>
+  <path d="M300 570h200l42 104H258Z" fill="#4c7776" opacity=".16"/>
+  <text x="400" y="760" text-anchor="middle" fill="#4c7776" font-family="Arial, Helvetica, sans-serif" font-size="38" font-weight="700">Yor Forger</text>
+  <text x="400" y="812" text-anchor="middle" fill="#4c7776" opacity=".78" font-family="Arial, Helvetica, sans-serif" font-size="23">SPY x FAMILY</text>
+  <text x="400" y="890" text-anchor="middle" fill="#4c7776" opacity=".7" font-family="Arial, Helvetica, sans-serif" font-size="18" letter-spacing="3">JAPAN FIGURE · 1/7</text>
+</svg>

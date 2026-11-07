@@ -3,9 +3,10 @@ import { ConfigModule } from './config/config.module';
 import { RequestIdMiddleware } from './common/request-id.middleware';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './health/health.module';
+import { CatalogModule } from './catalog/catalog.module';
 
 @Module({
-  imports: [ConfigModule, DatabaseModule, HealthModule],
+  imports: [ConfigModule, DatabaseModule, HealthModule, CatalogModule],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {

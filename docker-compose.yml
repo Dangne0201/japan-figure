@@ -32,6 +32,9 @@ services:
       NODE_ENV: production
       PORT: 3000
       API_INTERNAL_URL: http://api:3001
+      SITE_URL: ${SITE_URL:-http://localhost:${APP_PORT:-8081}}
+    volumes:
+      - ./local-images:/app/local-images:ro
     healthcheck:
       test:
         [

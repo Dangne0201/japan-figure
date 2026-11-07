@@ -14,7 +14,9 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "npm run prisma:generate --workspace apps/api",
-    "db:migrate": "npm run prisma:migrate --workspace apps/api"
+    "db:migrate": "npm run prisma:migrate --workspace apps/api",
+    "db:seed": "npm run db:seed --workspace apps/api",
+    "generate:placeholders": "node scripts/generate-placeholders.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

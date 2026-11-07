@@ -1,8 +1,35 @@
 # Progress
 
-Current phase: 1 complete (self-reviewed, verified, merged into `main`, and pushed to GitHub)
-Completed: npm monorepo with NestJS API and Next.js storefront; validated startup config, request IDs, exception format, security headers, Swagger, PostgreSQL/Redis/Ollama health checks, BullMQ worker, pgvector/unaccent/pg_trgm migration, multi-stage Docker builds, Nginx reverse proxy, health checks/memory limits/volumes, local Mailpit, hot reload override, GitHub Actions CI, Windows/LAN README, and phase design docs. Work is on `phase/1-foundation`.
-Decisions: see `docs/DECISIONS.md`.
-Verification: lint passed; API and web tests passed; API and Next.js production builds passed; production-stage Docker images built and API/web production-container smoke tests passed; runtime dependency audit reported zero vulnerabilities; merged Compose config validated; local host and LAN-IP HTTP checks returned 200 for storefront, API health, and Swagger; after changing the default host port, Compose maps host `8081` to Nginx container `8080`, and storefront, API health, and Swagger all return HTTP 200 on `localhost:8081`; PostgreSQL reports all three required extensions; every Compose service is healthy. GitHub Actions CI completed successfully for the Phase 1 branch and the merged `main` commit (`caa9653`); local lint, tests, builds, format check, Compose config, and `git diff --check` passed during final self-review.
-Known issues/limits: Ollama is not responding at `localhost:11434` and is intentionally optional/non-fatal. The landing page is a foundation connectivity demo, not the finished shop. A physical phone has not been tested; LAN routing was verified from the laptop using its Wi-Fi IP. The default host web port is now `8081` because a stopped local BookNest container is configured for `8080`. Local `main` contains the verified Phase 1 work but has not yet been pushed; the owner prefers publishing through SourceTree.
-Next step: wait for the owner to approve starting Phase 2.
+## Current phase
+
+Phase 2 — catalog and storefront.
+
+## Completed
+
+Phase 1 foundation and Phase 2 catalog/storefront implementation, including the database migration, idempotent demo seed, catalog API, responsive storefront, and generated image placeholders. Phase 2 is verified on `phase/2-catalog`; final publishing and merge remain.
+
+## In progress
+
+Final self-review, then publish and merge Phase 2 into `main`.
+
+## Decisions
+
+See `docs/DECISIONS.md`.
+
+## Verification
+
+- Applied the catalog migration and ran the seed twice; the database contains 50 published products, 50 variants, 50 images, and 9 pre-orders.
+- Verified catalog facets/home/list/detail/suggestions through the API and Nginx. Diacritic-insensitive and typo-tolerant search, brand/pre-order/sale/availability filters, sorting, pagination, and related products returned expected results.
+- Verified storefront home/list/search/detail, Swagger, health endpoint, all 50 placeholder image routes, local WebP override precedence, and SVG fallback.
+- Built and ran production API and web images; API health/search/detail and storefront home/list/detail/image routes returned HTTP 200.
+- Checked product listing/detail at a phone-sized viewport: no horizontal overflow or broken images.
+- `npm.cmd run lint`, `npm.cmd test` (7 API tests and 1 web test), `npm.cmd run build`, Prettier check, `git diff --check`, and `docker compose config` passed.
+- All Compose services, including PostgreSQL, Redis, migration, API, worker, web, and Nginx, were healthy during the final runtime check.
+
+## Known issues and limits
+
+Ollama is offline and remains optional until chatbot phases. Catalog prices, stock, JAN-like identifiers, and release dates are fictional demo data, not official product availability or transaction promises. The storefront defaults to host port `8081`; set `SITE_URL` in `.env` to the LAN origin when generating shareable SEO/Open Graph URLs for phone access.
+
+## Next step
+
+Complete the final self-review, merge the verified branch to `main`, and wait for owner approval before starting Phase 3.

@@ -2,6 +2,8 @@
 
 The diagram captures the intended domain. Exact columns and constraints are finalized alongside each implementation phase. Monetary amounts are integer VND, never floating point.
 
+Phase 2 implements `Brand`, `Series`, `Category`, `Product`, `ProductCategory`, `ProductVariant`, and `ProductImage`. Categories are many-to-many with products so products can be classified flexibly. Stock is the sum of each variant's `stock_on_hand`; reservation accounting is deferred until checkout. `jan_code` currently contains a demo-only `JF2026-...` identifier, not a manufacturer JAN barcode.
+
 ```mermaid
 erDiagram
   USER ||--o{ ADDRESS : has

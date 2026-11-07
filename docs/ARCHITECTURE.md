@@ -44,9 +44,10 @@ Services should use health checks and healthy-start ordering. Persistent data us
 ## Main data flows
 
 1. A browser requests the storefront through Nginx. Next.js renders the page and calls the REST API for catalog or account data.
-2. The API validates input, applies business rules, reads/writes PostgreSQL, and uses Redis for ephemeral state, caching, rate limits, and queues.
-3. Checkout stores order/payment state in PostgreSQL. Jobs are queued in Redis; workers update simulated statuses and deliver fake messages to Mailpit.
-4. Product and policy content is indexed from the database and `knowledge/`. The chatbot retrieves local sources only; it has no web access.
+2. The catalog API validates filters and pagination, queries PostgreSQL for product data, and combines `unaccent` with `pg_trgm` for Vietnamese diacritic-insensitive and typo-tolerant search.
+3. The API validates input, applies business rules, reads/writes PostgreSQL, and uses Redis for ephemeral state, caching, rate limits, and queues.
+4. Checkout stores order/payment state in PostgreSQL. Jobs are queued in Redis; workers update simulated statuses and deliver fake messages to Mailpit.
+5. Product and policy content is indexed from the database and `knowledge/`. The chatbot retrieves local sources only; it has no web access.
 
 ## Chatbot retrieval flow
 

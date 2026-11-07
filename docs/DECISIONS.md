@@ -51,3 +51,14 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 
 - For phase work, use a dedicated branch, perform self-review and verification, then merge into `main` only after checks pass. Do not create a pull request unless the owner asks for one.
 - Publish branches and `main` through the owner's SourceTree setup. Do not start the next phase until the owner explicitly approves it.
+
+## 2026-11-07 — Phase 2 catalog seed assumptions
+
+- Use the roadmap's initial working assumption of 50 catalog products; the owner did not specify a different count before implementation.
+- Seed prices, stock, JAN-like identifiers, and release dates are fictional demo data for the learning simulation, not official product availability, manufacturer codes, or transaction promises.
+- Catalog image placeholders are generated original SVG artwork. Locally supplied `<slug>.webp` files override the placeholder and stay gitignored.
+
+## 2026-11-07 — Storefront metadata origin
+
+- Use the optional `SITE_URL` environment variable as the origin for absolute SEO/Open Graph URLs; default to `http://localhost:${APP_PORT}` in Compose.
+- Set `SITE_URL` to the laptop's LAN origin when sharing product pages from a phone, so generated image URLs do not point to the Next.js development port.
