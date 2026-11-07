@@ -1,0 +1,26 @@
+{
+  "name": "@japan-figure/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "next start --hostname 0.0.0.0",
+    "lint": "eslint .",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "next": "^16.4.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^16.4.5",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "@types/react-dom": "^19.0.2",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17"
+  }
+}

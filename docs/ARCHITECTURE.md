@@ -20,16 +20,16 @@ flowchart LR
 
 ## Services and responsibilities
 
-| Service | Responsibility |
-| --- | --- |
-| Nginx | Single LAN-facing entry point; publishes configurable host port `8080` by default and routes web/API requests. |
-| Web | Next.js App Router storefront, customer account pages, and role-protected `/admin` UI. |
-| API | NestJS REST API, validation, authentication, business rules, Swagger/OpenAPI, and request-ID logging. |
-| Worker | BullMQ jobs for simulated order progression, fake email, and product/document re-indexing. |
-| PostgreSQL | Relational application data, Vietnamese search extensions, and 1024-dimensional vector embeddings. |
-| Redis | Queue backend, cache, rate-limit state, and short-lived session/cart data. |
-| Mailpit | Local-only fake mailbox; no real email is sent. |
-| Ollama | Optional local LLM and embedding provider running on the Windows host, not in Docker. |
+| Service    | Responsibility                                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| Nginx      | Single LAN-facing entry point; publishes configurable host port `8080` by default and routes web/API requests. |
+| Web        | Next.js App Router storefront, customer account pages, and role-protected `/admin` UI.                         |
+| API        | NestJS REST API, validation, authentication, business rules, Swagger/OpenAPI, and request-ID logging.          |
+| Worker     | BullMQ jobs for simulated order progression, fake email, and product/document re-indexing.                     |
+| PostgreSQL | Relational application data, Vietnamese search extensions, and 1024-dimensional vector embeddings.             |
+| Redis      | Queue backend, cache, rate-limit state, and short-lived session/cart data.                                     |
+| Mailpit    | Local-only fake mailbox; no real email is sent.                                                                |
+| Ollama     | Optional local LLM and embedding provider running on the Windows host, not in Docker.                          |
 
 Services should use health checks and healthy-start ordering. Persistent data uses named volumes. Containers should run as non-root where supported and have conservative memory limits. Only Nginx is exposed to the LAN; Mailpit's UI is bound to localhost, and API/database/Redis ports are not published.
 
@@ -71,14 +71,14 @@ Retrieved text is untrusted data, not instructions. Live product, stock, price, 
 
 The laptop has 16 GB RAM. Keep the WSL2 VM around 6 GB as an initial ceiling and leave memory for Windows, the browser, and host Ollama. Example Docker memory targets (adjust after measuring actual use):
 
-| Container group | Initial budget |
-| --- | ---: |
-| PostgreSQL | 1.5 GB |
-| Web | 512 MB |
-| API | 768 MB |
-| Worker | 512 MB |
-| Redis | 256 MB |
-| Nginx + Mailpit | 256 MB combined |
-| **Approximate container total** | **3.8 GB** |
+| Container group                 |  Initial budget |
+| ------------------------------- | --------------: |
+| PostgreSQL                      |          1.5 GB |
+| Web                             |          512 MB |
+| API                             |          768 MB |
+| Worker                          |          512 MB |
+| Redis                           |          256 MB |
+| Nginx + Mailpit                 | 256 MB combined |
+| **Approximate container total** |      **3.8 GB** |
 
 These are starting limits, not performance guarantees. Avoid running multiple model workloads concurrently; Ollama model memory is outside the Docker container budget. Monitor Docker Desktop and host memory before raising limits.

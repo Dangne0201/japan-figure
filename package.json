@@ -1,0 +1,41 @@
+{
+  "name": "japan-figure",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "docker compose up --build",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "npm run prisma:generate --workspace apps/api",
+    "db:migrate": "npm run prisma:migrate --workspace apps/api"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.14.0",
+    "prettier": "^3.4.2",
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.32"
+    },
+    "multer": "2.5.0",
+    "path-to-regexp": "8.4.2",
+    "postcss": "8.5.32"
+  },
+  "allowScripts": {
+    "@prisma/client@6.19.3": true,
+    "@prisma/engines@6.19.3": true,
+    "prisma@6.19.3": true
+  }
+}

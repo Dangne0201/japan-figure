@@ -33,3 +33,10 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 - Node.js, npm, Docker CLI, Docker Compose, and Git are installed. GitHub CLI is missing but optional; authenticated Git push worked. Ollama is not responding at `localhost:11434`.
 - Docker Desktop engine returned HTTP 500 for the Docker Desktop Linux engine during `docker info`.
 - Vietnam administrative address dataset and current province/district/ward structure must be verified when implementing the address feature.
+
+## 2026-11-07 — Phase 1 development defaults
+
+- Use npm workspaces for the TypeScript monorepo and Node.js 22 images for containers and CI.
+- The Compose development override enables hot reload and publishes only the Nginx web entry point plus Mailpit on loopback; API, PostgreSQL, and Redis remain internal to the Docker network.
+- Redis uses `noeviction`, as required for reliable BullMQ queue semantics. Prisma migrations run in a one-shot service before the API starts.
+- A separate Ubuntu distribution is optional; Docker Desktop's WSL2 backend is sufficient.

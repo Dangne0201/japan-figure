@@ -1,0 +1,10 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE EXTENSION IF NOT EXISTS unaccent;
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
+CREATE TABLE "app_metadata" (
+    "key" VARCHAR(100) NOT NULL,
+    "value" TEXT NOT NULL,
+    "updated_at" TIMESTAMPTZ(3) NOT NULL,
+    CONSTRAINT "app_metadata_pkey" PRIMARY KEY ("key")
+);
