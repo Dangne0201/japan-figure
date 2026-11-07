@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 4 — Admin Part 1 is complete and verified on `phase/4-admin`; Part 2 is intentionally waiting for owner approval. Phase 3b is complete and merged to `main` as `d81c791`.
+Phase 4 — Admin Part 1 is complete and merged to `main` as `f79e01c`. Part 2 is implemented and verified on `phase/4-admin-operations`; it is ready to publish and merge.
 
 ## Completed
 
@@ -23,6 +23,9 @@ Phase 4 — Admin Part 1 is complete and verified on `phase/4-admin`; Part 2 is 
 - Phase 4 is split at the admin product boundary: Part 1 covers role-protected admin foundation, dashboard, product/stock management, and validated local image uploads. Part 2 covers order operations, vouchers/banners, review moderation, customer controls, and the remaining audit-log coverage.
 - Phase 4 Part 1: added `/admin` dashboard and product editor, role-protected admin APIs, environment-only admin provisioning, reservation-safe stock updates, a persistent local WebP upload volume, generic placeholder fallback, and audit records for product/stock/image changes.
 - Added the admin audit migration and applied it without resetting or dropping existing local data. The seed container now generates Prisma Client before running the TypeScript seed.
+- Phase 4 Part 2 implementation: added admin order search, eligible-order cancellation with stock/points/voucher commitment release, return-request approval/rejection, voucher CRUD, banner management and public storefront display, review moderation, customer disable/enable, and paginated audit-log search. All mutations write audit records transactionally.
+- Added narrow migrations for the `REJECTED` return status and banner table, ordered after the existing admin audit migration.
+- Added an operations panel to `/admin` for these workflows and explicit messaging that simulated payment, delivery, and returns do not perform real transactions or refunds.
 
 ## Verification
 
@@ -40,6 +43,9 @@ Phase 4 — Admin Part 1 is complete and verified on `phase/4-admin`; Part 2 is 
 - Phase 4 Part 1 verification passed: formatting, lint, 14 API suites/46 tests, 4 web tests, API and web production builds, nine applied Prisma migrations, and all Compose services healthy.
 - Exercised the admin flow against Compose: environment-seeded temporary admin login, unauthenticated API denial, dashboard access, product creation, stock update, WebP upload and serving, product publish/pricing update, and public catalog visibility. Removed the temporary account and test product afterward.
 - Through the reverse proxy, `/admin`, `/api/health`, and `/manifest.webmanifest` returned HTTP 200.
+- Phase 4 Part 2 verification passed: formatting, lint, 15 API suites/50 tests, 4 web tests, API and web production builds, and 11 applied Prisma migrations.
+- Compose verified all seven long-running services healthy and the migration service exited successfully. Through Nginx, verified the storefront/admin page, catalog banner response, API health, and guest denial (401) for every new admin endpoint.
+- Authenticated local runtime smoke tests passed for admin order/voucher/banner/review/customer/audit listing; voucher create/update; banner create/update/public display/delete; customer disable/enable and disabled-session rejection; and audit-log browsing. Temporary admin, customer, voucher, banner, and audit data were removed and verified absent.
 
 ## Known issues and limits
 
@@ -51,4 +57,4 @@ Phase 4 — Admin Part 1 is complete and verified on `phase/4-admin`; Part 2 is 
 
 ## Next step
 
-Phase 4 Part 1 is ready to publish and merge. Stop after that; begin Phase 4 Part 2 only when the owner asks to continue.
+Publish and fast-forward merge the verified Phase 4 Part 2 branch, then stop for owner approval before any further phase work. The owner should complete the manual phone-width visual checklist.

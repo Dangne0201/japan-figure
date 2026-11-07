@@ -122,3 +122,12 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 - Generate Prisma Client in the non-production seed/migration image before switching to its non-root runtime user, so the profile-based seed command can construct PrismaClient.
 - Split Phase 4 after product/stock management and uploads; order operations, voucher/banner management, review moderation, customer controls, and remaining audit-log coverage form Part 2.
 - Re-resolve Docker service names from Nginx rather than pinning API/web container IPs, so replacing an application container does not require restarting the reverse proxy.
+
+## 2026-11-07 — Phase 4 admin operations
+
+- Admin cancellation is limited to pending simulated bank-transfer orders and COD orders still in preparation; use the existing order transition and commitment-release helpers so inventory reservations, redeemed points, and voucher redemptions stay consistent.
+- Admins may complete or reject a pending return request. Rejection returns the order to `DELIVERED` without resetting the original delivery timestamp or the seven-day request window. Return and payment outcomes remain simulations; no real refund is initiated.
+- A disabled customer cannot authenticate; revoke all active refresh sessions when disabling the account. Restrict customer administration to `USER` accounts.
+- Storefront banners accept same-origin relative image and destination paths only. Public output includes active banners only while their configured time window is open.
+- Keep the new `ReturnStatus.REJECTED` enum value in its own migration before any migration that may depend on it, following the repository's PostgreSQL enum migration convention.
+- Record each Part 2 administrative mutation together with its audit log in the same database transaction.

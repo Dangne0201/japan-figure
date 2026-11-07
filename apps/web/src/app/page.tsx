@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import ProductSection from '../components/product-section';
 import SiteFooter from '../components/site-footer';
 import SiteHeader from '../components/site-header';
@@ -45,6 +46,34 @@ export default async function HomePage() {
   return (
     <main className="min-h-screen bg-brand-cream">
       <SiteHeader />
+      {home?.banners.length ? (
+        <section className="page-shell pt-6 sm:pt-8" aria-label="Ưu đãi đang diễn ra">
+          <div className="grid gap-4 sm:grid-cols-2">
+            {home.banners.map((banner) => (
+              <Link
+                key={banner.id}
+                href={banner.href}
+                className="group relative isolate flex min-h-44 items-end overflow-hidden rounded-3xl bg-brand-plum p-5 text-white sm:min-h-56 sm:p-7"
+              >
+                <Image
+                  src={banner.imageUrl}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 100vw, 50vw"
+                  className="-z-10 object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 -z-10 bg-gradient-to-t from-brand-ink/80 via-brand-ink/15 to-transparent" />
+                <div>
+                  <h2 className="text-xl font-semibold sm:text-2xl">{banner.title}</h2>
+                  {banner.description ? (
+                    <p className="mt-1 max-w-prose text-sm text-white/85">{banner.description}</p>
+                  ) : null}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <section className="hero-grid">
         <div className="page-shell grid gap-8 py-12 sm:py-20 md:grid-cols-[1.05fr_0.95fr] md:items-center">
           <div>

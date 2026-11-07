@@ -203,17 +203,25 @@ export class CatalogService {
   }
 
   async home() {
-    const [featured, newArrivals, preorders, sales] = await Promise.all([
+    const now = new Date();
+    const [featured, newArrivals, preorders, sales, banners] = await Promise.all([
       this.list({ featured: true, limit: 8 }),
       this.list({ newArrival: true, limit: 8 }),
       this.list({ preorder: true, limit: 8 }),
       this.list({ saleOnly: true, limit: 8, sort: 'price-asc' }),
+      this.prisma.banner.findMany({
+        where: { isActive: true, startsAt: { lte: now }, endsAt: { gt: now } },
+        select: { id: true, title: true, description: true, imageUrl: true, href: true },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+        take: 4,
+      }),
     ]);
     return {
       featured: featured.items,
       newArrivals: newArrivals.items,
       preorders: preorders.items,
       sales: sales.items,
+      banners,
     };
   }
 

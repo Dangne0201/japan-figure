@@ -45,6 +45,13 @@ export interface CatalogHome {
   newArrivals: ProductCard[];
   preorders: ProductCard[];
   sales: ProductCard[];
+  banners: Array<{
+    id: string;
+    title: string;
+    description: string;
+    imageUrl: string;
+    href: string;
+  }>;
 }
 
 const apiBase = process.env.API_INTERNAL_URL ?? 'http://localhost:3001';

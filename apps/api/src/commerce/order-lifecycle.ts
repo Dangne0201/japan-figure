@@ -24,7 +24,7 @@ const allowedTransitions: Record<OrderStatus, readonly OrderStatus[]> = {
   PAYMENT_FAILED: [],
   CANCELLED: [],
   EXPIRED: [],
-  RETURN_REQUESTED: [OrderStatus.RETURNED],
+  RETURN_REQUESTED: [OrderStatus.RETURNED, OrderStatus.DELIVERED],
   RETURNED: [],
 };
 
@@ -38,7 +38,7 @@ export async function transitionOrder(
   transaction: Transaction,
   order: Pick<Order, 'id' | 'status'>,
   toStatus: OrderStatus,
-  options: { actorUserId?: string; reason?: string } = {},
+  options: { actorUserId?: string; reason?: string; preserveDeliveredAt?: boolean } = {},
 ): Promise<void> {
   assertOrderTransition(order.status, toStatus);
   const updatedAt = new Date();
@@ -47,7 +47,9 @@ export async function transitionOrder(
     data: {
       status: toStatus,
       statusUpdatedAt: updatedAt,
-      ...(toStatus === OrderStatus.DELIVERED ? { deliveredAt: updatedAt } : {}),
+      ...(toStatus === OrderStatus.DELIVERED && !options.preserveDeliveredAt
+        ? { deliveredAt: updatedAt }
+        : {}),
     },
   });
   if (updated.count !== 1) {

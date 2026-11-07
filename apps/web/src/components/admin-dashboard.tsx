@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { FormEvent } from 'react';
 import { authenticatedFetch } from '../lib/api';
 import { formatVnd } from '../lib/catalog';
+import AdminOperationsPanel from './admin-operations-panel';
 
 interface AdminUser {
   id: string;
@@ -406,9 +407,14 @@ export default function AdminDashboard() {
               Thay đổi chỉ áp dụng cho dữ liệu cửa hàng local.
             </p>
           </div>
-          <Link className="button-secondary" href="/">
-            Về cửa hàng
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link className="button-secondary" href="#admin-operations-title">
+              Đơn hàng &amp; vận hành
+            </Link>
+            <Link className="button-secondary" href="/">
+              Về cửa hàng
+            </Link>
+          </div>
         </div>
 
         {error ? (
@@ -440,7 +446,7 @@ export default function AdminDashboard() {
           </section>
         ) : null}
 
-        <section className="mt-8">
+        <section className="mt-8" id="admin-products">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h2 className="text-2xl font-semibold">Sản phẩm và tồn kho</h2>
@@ -798,6 +804,7 @@ export default function AdminDashboard() {
           </section>
         ) : null}
       </section>
+      <AdminOperationsPanel />
     </main>
   );
 }
