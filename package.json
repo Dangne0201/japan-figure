@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "docker compose up --build",
     "lint": "npm run lint --workspaces --if-present",
+    "pretest": "npm run db:generate",
     "test": "npm run test --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
     "format": "prettier --write .",
