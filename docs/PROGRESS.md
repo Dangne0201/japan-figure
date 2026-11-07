@@ -2,15 +2,15 @@
 
 ## Current phase
 
-Phase 2 — catalog and storefront.
+Phase 2 — catalog and storefront (complete).
 
 ## Completed
 
-Phase 1 foundation and Phase 2 catalog/storefront implementation, including the database migration, idempotent demo seed, catalog API, responsive storefront, and generated image placeholders. Phase 2 is verified on `phase/2-catalog`; final publishing and merge remain.
+Phase 1 foundation and Phase 2 catalog/storefront implementation, including the database migration, idempotent demo seed, catalog API, responsive storefront, and generated image placeholders. Phase 2 was self-reviewed, CI-verified, and merged to `main`.
 
 ## In progress
 
-Final self-review, then publish and merge Phase 2 into `main`.
+No active implementation. Await owner approval before starting Phase 3.
 
 ## Decisions
 
@@ -32,4 +32,4 @@ Ollama is offline and remains optional until chatbot phases. Catalog prices, sto
 
 ## Next step
 
-Complete the final self-review, merge the verified branch to `main`, and wait for owner approval before starting Phase 3.
+Wait for owner approval before starting Phase 3.
