@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 3b — orders and payment simulation is in progress on `phase/3b-orders`.
+Phase 3b — orders and payment simulation is complete and merged to `main` as `174383a`. Phase 4 is next.
 
 ## Completed
 
@@ -19,6 +19,7 @@ Phase 3b — orders and payment simulation is in progress on `phase/3b-orders`.
 - Nginx now refreshes Docker service DNS for API/web upstreams; verified the API remains reachable through Nginx after recreating its container.
 - Documented the address snapshot, commerce policies, and local run instructions in `README.md`, `DECISIONS.md`, and `ROADMAP.md`.
 - Started Phase 3b on a dedicated branch after publishing Phase 3a.
+- Phase 3b was self-reviewed, fully verified, published on `phase/3b-orders`, and fast-forward merged to `main` without a pull request.
 
 ## Verification
 
@@ -40,8 +41,8 @@ Phase 3b — orders and payment simulation is in progress on `phase/3b-orders`.
 - Ollama is offline; this is non-fatal and does not affect Phase 3a or 3b.
 - Catalog prices, stock, JAN-like identifiers, and release dates are fictional demo data. `npm audit` has reported three high-severity issues through Prisma's `deepmerge-ts`; its automatic fix requires a breaking Prisma major upgrade and was not applied.
 - Integrated-browser CDP timed out again, so a fresh phone-width visual check could not be completed.
-- Phase 3b implementation and automated verification are complete; the verified branch still needs publication and merge.
+- A fresh phone-width visual check remains a manual owner checklist item because the integrated browser could not connect.
 
 ## Next step
 
-Publish the verified `phase/3b-orders` branch and merge it to `main`, then continue with Phase 4 Admin as previously requested.
+Begin Phase 4 — Admin on `phase/4-admin`; start with the role-protected admin foundation and product/stock management, then continue through the remaining roadmap scope.
