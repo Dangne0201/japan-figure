@@ -13,6 +13,7 @@ const config = loadConfig({
 });
 
 function createService() {
+  const knowledgeQueue = { enqueueProduct: jest.fn().mockResolvedValue(undefined) };
   const transaction = {
     productVariant: {
       findFirst: jest.fn().mockResolvedValue({
@@ -38,8 +39,9 @@ function createService() {
     ),
   };
   return {
-    service: new AdminService(prisma as unknown as PrismaService, config),
+    service: new AdminService(prisma as unknown as PrismaService, config, knowledgeQueue),
     transaction,
+    knowledgeQueue,
   };
 }
 
@@ -55,7 +57,7 @@ describe('AdminService', () => {
   });
 
   it('updates stock conditionally and records the change', async () => {
-    const { service, transaction } = createService();
+    const { service, transaction, knowledgeQueue } = createService();
 
     const variant = await service.setVariantStock('admin-1', 'product-1', 'variant-1', {
       stockOnHand: 10,
@@ -75,6 +77,7 @@ describe('AdminService', () => {
         }),
       }),
     );
+    expect(knowledgeQueue.enqueueProduct).toHaveBeenCalledWith('product-1');
   });
 
   it('rejects a WebP upload whose bytes do not contain a WebP signature', async () => {

@@ -6,14 +6,14 @@ A learning project simulating a Vietnamese anime-figure e-commerce shop. The int
 
 ## Project status
 
-The repository is implementing Phase 3b (orders and payment simulation). See [docs/PROGRESS.md](docs/PROGRESS.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DATA_MODEL.md](docs/DATA_MODEL.md), and [docs/ROADMAP.md](docs/ROADMAP.md).
+The repository is implementing Phase 5a (chatbot knowledge and retrieval). See [docs/PROGRESS.md](docs/PROGRESS.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DATA_MODEL.md](docs/DATA_MODEL.md), [docs/ROADMAP.md](docs/ROADMAP.md), and [docs/CHATBOT.md](docs/CHATBOT.md).
 
 ## Planned stack
 
 - Web: Next.js App Router, TypeScript, Tailwind CSS.
 - API: NestJS, TypeScript, Prisma, REST, Swagger/OpenAPI.
 - Data/services: PostgreSQL with pgvector, unaccent and pg_trgm; Redis and BullMQ; Nginx; Mailpit.
-- Local AI: Ollama on the Windows host, configurable through environment variables. The chatbot is planned after the storefront and core commerce features and will use local project data only.
+- Local AI: Ollama on the Windows host, configurable through environment variables. Phase 5a builds a local-only knowledge and retrieval foundation; the chat API and UI are planned separately and must not use web search.
 
 ## Windows development notes
 
@@ -40,6 +40,7 @@ Set the optional `SITE_URL` in `.env` to the LAN origin when product pages are s
 - New checkout orders reserve stock and clear the account cart. Public availability subtracts reservations; on-hand stock is decremented when the simulated order ships. A pending transfer expires after 15 minutes; failure, cancellation, or expiry releases its stock, voucher use, and redeemed points.
 - Supported payment choices are fake bank transfer and fake COD. Transfer success/failure/cancel is selected on the order page. COD is marked paid only when the worker simulates delivery. There is no card form, payment provider, real charge, carrier request, or refund.
 - The BullMQ worker checks expiry and fulfillment every 15 seconds. After payment, demo orders move to preparation after 15 seconds, shipment after 30 more seconds, and delivery after another 30 seconds; generated tracking numbers and Mailpit order-status messages are fictional. Earned points are credited only on simulated delivery. A return request is available for seven days after delivery and does not issue a real refund.
+- The Phase 5a knowledge base uses local Markdown documents and published products only. It does not search the web. Ollama runs on the Windows host; if containers cannot reach it, set `OLLAMA_HOST=0.0.0.0` on Windows and allow port 11434 through Windows Firewall on the Private network. See [docs/CHATBOT.md](docs/CHATBOT.md) for indexing, retrieval, provider configuration, and benchmark instructions.
 - Reviews require a delivered purchase and remain pending moderation; only approved reviews appear publicly. Wishlist and order data require authentication and are always scoped to the signed-in customer.
 - The PWA caches only versioned same-origin static assets and a static offline page. It never caches API responses, storefront pages, or account/order data. On localhost, browsers permit service workers over HTTP; installing from another device on the LAN requires HTTPS. Plain-HTTP LAN access remains available for regular browsing but is not installable as a PWA.
 - Rerunning the seed restores versioned catalog stock when doing so will not violate active reservations; it keeps order history and does not clear active reservations.

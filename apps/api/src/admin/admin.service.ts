@@ -10,6 +10,7 @@ import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { PrismaService } from '../database/prisma.service';
+import { KnowledgeQueue, type ProductKnowledgeQueue } from '../knowledge/knowledge-queue.service';
 import type { AppConfig } from '../config/env';
 import type {
   AdminProductListDto,
@@ -69,6 +70,7 @@ export class AdminService {
   constructor(
     private readonly prisma: PrismaService,
     @Inject('APP_CONFIG') private readonly config: AppConfig,
+    @Inject(KnowledgeQueue) private readonly knowledgeQueue: ProductKnowledgeQueue,
   ) {}
 
   async dashboard() {
@@ -144,7 +146,7 @@ export class AdminService {
     this.validateProductPrices(input.priceVnd, input.salePriceVnd, input.preorderDepositVnd);
     await this.assertCatalogRelations(input.brandId, input.seriesId, input.categoryIds);
     try {
-      return await this.prisma.$transaction(async (transaction) => {
+      const product = await this.prisma.$transaction(async (transaction) => {
         const product = await transaction.product.create({
           data: {
             slug: input.slug,
@@ -198,6 +200,8 @@ export class AdminService {
         });
         return product;
       });
+      await this.knowledgeQueue.enqueueProduct(product.id);
+      return product;
     } catch (error) {
       this.handleProductWriteError(error);
     }
@@ -283,7 +287,7 @@ export class AdminService {
     };
 
     try {
-      return await this.prisma.$transaction(async (transaction) => {
+      const product = await this.prisma.$transaction(async (transaction) => {
         const product = await transaction.product.update({
           where: { id: productId },
           data,
@@ -306,6 +310,8 @@ export class AdminService {
         });
         return product;
       });
+      await this.knowledgeQueue.enqueueProduct(product.id);
+      return product;
     } catch (error) {
       this.handleProductWriteError(error);
     }
@@ -318,7 +324,7 @@ export class AdminService {
     input: SetProductStockDto,
   ) {
     try {
-      return await this.prisma.$transaction(async (transaction) => {
+      const variant = await this.prisma.$transaction(async (transaction) => {
         const variant = await transaction.productVariant.findFirst({
           where: { id: variantId, productId },
           select: { id: true, stockOnHand: true, stockReserved: true },
@@ -361,6 +367,8 @@ export class AdminService {
           },
         });
       });
+      await this.knowledgeQueue.enqueueProduct(productId);
+      return variant;
     } catch (error) {
       this.handleProductWriteError(error);
     }

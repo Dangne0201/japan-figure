@@ -26,6 +26,7 @@ COPY apps/web/package.json apps/web/package.json
 RUN npm ci --omit=dev --omit=optional
 COPY --from=build /app/apps/api/dist apps/api/dist
 COPY --from=build /app/apps/api/prisma apps/api/prisma
+COPY --from=build /app/knowledge knowledge
 COPY --from=build /app/node_modules/.prisma node_modules/.prisma
 RUN mkdir -p /app/product-uploads && chown node:node /app/product-uploads
 USER node

@@ -1,7 +1,7 @@
 import { INestApplication, UnauthorizedException, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import type { AppConfig } from '../src/config/env';
+import { loadConfig } from '../src/config/env';
 import { AccessTokenGuard } from '../src/auth/access-token.guard';
 import { AuthController } from '../src/auth/auth.controller';
 import { AuthService, type AuthTokens } from '../src/auth/auth.service';
@@ -34,26 +34,13 @@ describe('AuthController', () => {
     updateProfile: jest.fn().mockResolvedValue(user),
   };
   const carts = { mergeGuestCart: jest.fn().mockResolvedValue(undefined) };
-  const config: AppConfig = {
+  const config = loadConfig({
     NODE_ENV: 'test',
-    API_PORT: 3001,
-    DATABASE_URL: '******localhost:5432/test',
+    DATABASE_URL: 'postgresql://localhost:5432/test',
     REDIS_URL: 'redis://localhost:6379',
-    WEB_ORIGIN: 'http://localhost:3000',
     JWT_ACCESS_SECRET: 'test-secret-that-is-long-enough-for-jwt-signing',
-    AUTH_ACCESS_TOKEN_TTL_SECONDS: 900,
-    AUTH_REFRESH_TOKEN_TTL_DAYS: 30,
-    AUTH_ACTION_TOKEN_TTL_HOURS: 24,
-    COOKIE_SECURE: false,
-    SMTP_HOST: 'localhost',
-    SMTP_PORT: 1025,
-    MAIL_FROM: 'no-reply@japan-figure.local',
     OLLAMA_BASE_URL: 'http://127.0.0.1:11434',
-    OLLAMA_CHAT_MODEL: 'test-chat',
-    OLLAMA_CHAT_FALLBACK_MODEL: 'test-fallback',
-    OLLAMA_EMBEDDING_MODEL: 'test-embedding',
-    PRODUCT_UPLOAD_DIR: '/tmp/product-uploads',
-  };
+  });
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({

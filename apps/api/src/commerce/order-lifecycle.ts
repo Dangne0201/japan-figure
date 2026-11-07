@@ -69,11 +69,17 @@ export async function transitionOrder(
 export async function releaseOrderCommitments(
   transaction: Transaction,
   order: Pick<Order, 'id' | 'userId' | 'pointsRedeemed'>,
-): Promise<void> {
+): Promise<string[]> {
   const reservations = await transaction.stockReservation.findMany({
     where: { orderId: order.id, status: ReservationStatus.ACTIVE },
     select: { variantId: true, quantity: true },
   });
+  const variants = reservations.length
+    ? await transaction.productVariant.findMany({
+        where: { id: { in: reservations.map(({ variantId }) => variantId) } },
+        select: { productId: true },
+      })
+    : [];
   for (const reservation of reservations) {
     const updated = await transaction.productVariant.updateMany({
       where: { id: reservation.variantId, stockReserved: { gte: reservation.quantity } },
@@ -112,16 +118,23 @@ export async function releaseOrderCommitments(
   }
 
   await transaction.voucherRedemption.deleteMany({ where: { orderId: order.id } });
+  return [...new Set(variants.map(({ productId }) => productId))];
 }
 
 export async function consumeOrderReservations(
   transaction: Transaction,
   orderId: string,
-): Promise<void> {
+): Promise<string[]> {
   const reservations = await transaction.stockReservation.findMany({
     where: { orderId, status: ReservationStatus.ACTIVE },
     select: { variantId: true, quantity: true },
   });
+  const variants = reservations.length
+    ? await transaction.productVariant.findMany({
+        where: { id: { in: reservations.map(({ variantId }) => variantId) } },
+        select: { productId: true },
+      })
+    : [];
   for (const reservation of reservations) {
     const updated = await transaction.productVariant.updateMany({
       where: {
@@ -144,4 +157,5 @@ export async function consumeOrderReservations(
       data: { status: ReservationStatus.CONSUMED },
     });
   }
+  return [...new Set(variants.map(({ productId }) => productId))];
 }

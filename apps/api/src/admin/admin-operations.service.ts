@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -15,6 +16,7 @@ import {
   VoucherType,
 } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
+import { KnowledgeQueue, type ProductKnowledgeQueue } from '../knowledge/knowledge-queue.service';
 import { releaseOrderCommitments, transitionOrder } from '../commerce/order-lifecycle';
 import type {
   AdminAuditListDto,
@@ -36,7 +38,10 @@ const adminOrderInclude = {
 
 @Injectable()
 export class AdminOperationsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(KnowledgeQueue) private readonly knowledgeQueue: ProductKnowledgeQueue,
+  ) {}
 
   async listOrders(query: AdminOrderListDto) {
     const page = query.page ?? 1;
@@ -71,8 +76,9 @@ export class AdminOperationsService {
   async cancelOrder(actorUserId: string, orderId: string, reason: string) {
     const normalizedReason = reason.trim();
     if (!normalizedReason) throw new BadRequestException('Hãy nhập lý do hủy đơn.');
+    let changedProductIds: string[] = [];
     try {
-      return await this.prisma.$transaction(
+      const orderResult = await this.prisma.$transaction(
         async (transaction) => {
           const order = await transaction.order.findUnique({
             where: { id: orderId },
@@ -103,7 +109,7 @@ export class AdminOperationsService {
             actorUserId,
             reason: `Quản trị viên hủy đơn: ${normalizedReason}`,
           });
-          await releaseOrderCommitments(transaction, order);
+          changedProductIds = await releaseOrderCommitments(transaction, order);
           await transaction.adminAuditLog.create({
             data: {
               actorUserId,
@@ -120,6 +126,10 @@ export class AdminOperationsService {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
+      await Promise.all(
+        changedProductIds.map((productId) => this.knowledgeQueue.enqueueProduct(productId)),
+      );
+      return orderResult;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
         throw new ConflictException('Đơn hàng vừa thay đổi. Hãy tải lại và thử lại.');

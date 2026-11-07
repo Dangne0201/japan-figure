@@ -66,7 +66,9 @@ function createService(options?: {
     },
   };
   return {
-    service: new CheckoutService(prisma as unknown as PrismaService),
+    service: new CheckoutService(prisma as unknown as PrismaService, {
+      enqueueProduct: jest.fn().mockResolvedValue(undefined),
+    }),
     prisma,
   };
 }

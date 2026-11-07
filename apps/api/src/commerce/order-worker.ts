@@ -40,14 +40,19 @@ export async function runOrderLifecycleSweep(
   prisma: PrismaClient,
   mailer: Transporter,
   config: AppConfig,
+  enqueueProductKnowledge: (productId: string) => Promise<void>,
   now = new Date(),
 ): Promise<void> {
-  await expirePendingPayments(prisma, now);
-  await advanceFulfillment(prisma, now);
+  const changedProductIds = new Set([
+    ...(await expirePendingPayments(prisma, now)),
+    ...(await advanceFulfillment(prisma, now)),
+  ]);
+  await Promise.all([...changedProductIds].map(enqueueProductKnowledge));
   await sendPendingNotifications(prisma, mailer, config);
 }
 
-async function expirePendingPayments(prisma: PrismaClient, now: Date): Promise<void> {
+async function expirePendingPayments(prisma: PrismaClient, now: Date): Promise<string[]> {
+  const changedProductIds = new Set<string>();
   const expiredOrders = await prisma.order.findMany({
     where: {
       status: OrderStatus.PENDING_PAYMENT,
@@ -64,7 +69,7 @@ async function expirePendingPayments(prisma: PrismaClient, now: Date): Promise<v
   });
 
   for (const { id } of expiredOrders) {
-    await prisma.$transaction(
+    const productIds = await prisma.$transaction(
       async (transaction) => {
         const order = await transaction.order.findFirst({
           where: {
@@ -80,7 +85,7 @@ async function expirePendingPayments(prisma: PrismaClient, now: Date): Promise<v
           },
           include: { payment: true },
         });
-        if (!order?.payment) return;
+        if (!order?.payment) return [];
 
         await transaction.payment.update({
           where: { id: order.payment.id },
@@ -89,14 +94,17 @@ async function expirePendingPayments(prisma: PrismaClient, now: Date): Promise<v
         await transitionOrder(transaction, order, OrderStatus.EXPIRED, {
           reason: 'Hết thời hạn thanh toán mô phỏng.',
         });
-        await releaseOrderCommitments(transaction, order);
+        return releaseOrderCommitments(transaction, order);
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
+    productIds.forEach((productId) => changedProductIds.add(productId));
   }
+  return [...changedProductIds];
 }
 
-async function advanceFulfillment(prisma: PrismaClient, now: Date): Promise<void> {
+async function advanceFulfillment(prisma: PrismaClient, now: Date): Promise<string[]> {
+  const changedProductIds = new Set<string>();
   const candidates = await prisma.order.findMany({
     where: {
       status: { in: [OrderStatus.PAID, OrderStatus.PROCESSING, OrderStatus.SHIPPED] },
@@ -122,22 +130,24 @@ async function advanceFulfillment(prisma: PrismaClient, now: Date): Promise<void
   });
 
   for (const { id } of candidates) {
-    await prisma.$transaction(
+    const productIds = await prisma.$transaction(
       async (transaction) => {
         const order = await transaction.order.findUnique({
           where: { id },
           include: { payment: true },
         });
-        if (!order) return;
+        if (!order) return [];
         const delay = fulfillmentDelayMs[order.status];
-        if (delay === undefined || order.statusUpdatedAt.getTime() > now.getTime() - delay) return;
+        if (delay === undefined || order.statusUpdatedAt.getTime() > now.getTime() - delay) {
+          return [];
+        }
 
         if (order.status === OrderStatus.PAID) {
           await transitionOrder(transaction, order, OrderStatus.PROCESSING, {
             reason: 'Worker mô phỏng bắt đầu xử lý đơn.',
           });
         } else if (order.status === OrderStatus.PROCESSING) {
-          await consumeOrderReservations(transaction, order.id);
+          const productIds = await consumeOrderReservations(transaction, order.id);
           await transitionOrder(transaction, order, OrderStatus.SHIPPED, {
             reason: 'Worker mô phỏng bàn giao đơn cho vận chuyển.',
           });
@@ -145,6 +155,7 @@ async function advanceFulfillment(prisma: PrismaClient, now: Date): Promise<void
             where: { id: order.id },
             data: { trackingNumber: createTrackingNumber(order.orderNumber) },
           });
+          return productIds;
         } else if (order.status === OrderStatus.SHIPPED) {
           if (order.payment?.method === PaymentMethod.MOCK_COD) {
             if (order.payment.status !== PaymentStatus.PENDING) {
@@ -187,11 +198,15 @@ async function advanceFulfillment(prisma: PrismaClient, now: Date): Promise<void
               });
             }
           }
+          return [];
         }
+        return [];
       },
       { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
     );
+    productIds.forEach((productId) => changedProductIds.add(productId));
   }
+  return [...changedProductIds];
 }
 
 async function sendPendingNotifications(

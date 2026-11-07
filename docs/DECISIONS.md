@@ -131,3 +131,18 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 - Storefront banners accept same-origin relative image and destination paths only. Public output includes active banners only while their configured time window is open.
 - Keep the new `ReturnStatus.REJECTED` enum value in its own migration before any migration that may depend on it, following the repository's PostgreSQL enum migration convention.
 - Record each Part 2 administrative mutation together with its audit log in the same database transaction.
+
+## 2026-11-07 — Phase 5a chatbot knowledge and retrieval
+
+- Keep chat-answer sources limited to committed `knowledge/` documents and currently published catalog data. Do not fetch web content, infer unavailable product facts, or expose unpublished products.
+- Store document and product chunks in PostgreSQL with `vector(1024)` embeddings from the configured Ollama embedding model; retain source type, source ID/path, title, chunk number, content hash, and product metadata for citations and re-indexing.
+- Use combined vector/trigram ranking with configurable top-k and relevance threshold. An empty or below-threshold result means no matching local knowledge; the later chat phase must not invent an answer.
+- Default chat generation to local Ollama. Gemini is an explicitly selected optional chat provider requiring `GEMINI_API_KEY`; embeddings remain local Ollama `bge-m3` so provider changes do not alter the database vector dimension.
+- The host Ollama service was unavailable during Phase 5a implementation. Do not download large models or claim measured benchmark figures without real results; record this verification limit and provide a reproducible local benchmark command.
+- Knowledge describes the implemented simulation only: shipping estimates and vouchers are demo rules; payment, carrier, returns/refunds, and order notifications are not real integrations. Returns are requests only and no real refund occurs. Seed JAN-like values are fictional and do not establish product authenticity.
+
+## 2026-11-07 — Phase 5a local model benchmark
+
+- After Ollama was installed on the Windows host, indexed 9 knowledge documents and 50 published products, then verified embedding-backed Vietnamese retrieval and benchmarked both configured Qwen chat models with a grounded answer prompt.
+- One local CPU run measured Qwen 2.5 3B at 7.01 tokens/s and 2.14 GiB peak combined Ollama/runner working set; the 1.5B fallback measured 10.99 tokens/s and 1.22 GiB. Both answers were factually consistent with the supplied care document; the 3B answer was more complete and the 1.5B answer more concise.
+- Keep the configured 3B primary and 1.5B fallback; these results cover only one short question and do not justify a general quality recommendation. Preserve the runner process in Windows memory sampling; measuring only processes named `ollama*` misses `llama-server.exe`.

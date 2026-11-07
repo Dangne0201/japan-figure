@@ -33,7 +33,9 @@ function makeCancelOrderHarness() {
     ),
   };
   return {
-    service: new AdminOperationsService(prisma as unknown as PrismaService),
+    service: new AdminOperationsService(prisma as unknown as PrismaService, {
+      enqueueProduct: jest.fn().mockResolvedValue(undefined),
+    }),
     transaction,
     order,
   };
@@ -100,7 +102,9 @@ describe('AdminOperationsService', () => {
         callback(transaction),
       ),
     };
-    const service = new AdminOperationsService(prisma as unknown as PrismaService);
+    const service = new AdminOperationsService(prisma as unknown as PrismaService, {
+      enqueueProduct: jest.fn().mockResolvedValue(undefined),
+    });
 
     await service.resolveReturn('admin-1', 'order-1', 'REJECTED', 'Không đủ điều kiện.');
 

@@ -25,6 +25,12 @@ describe('HealthService', () => {
     OLLAMA_CHAT_MODEL: 'test-chat',
     OLLAMA_CHAT_FALLBACK_MODEL: 'test-fallback',
     OLLAMA_EMBEDDING_MODEL: 'test-embedding',
+    LLM_PROVIDER: 'ollama',
+    LLM_REQUEST_TIMEOUT_MS: 30_000,
+    LLM_RETRY_COUNT: 2,
+    GEMINI_CHAT_MODEL: 'test-gemini',
+    KNOWLEDGE_RELEVANCE_THRESHOLD: 0.42,
+    KNOWLEDGE_TOP_K: 5,
     PRODUCT_UPLOAD_DIR: '/tmp/product-uploads',
   };
 

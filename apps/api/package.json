@@ -15,7 +15,9 @@
     "test:watch": "jest --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
-    "db:seed": "ts-node --transpile-only prisma/seed.ts"
+    "db:seed": "ts-node --transpile-only prisma/seed.ts",
+    "knowledge:reindex": "ts-node --transpile-only src/knowledge/reindex.ts",
+    "chatbot:benchmark": "ts-node --transpile-only src/knowledge/benchmark.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

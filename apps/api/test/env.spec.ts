@@ -24,4 +24,23 @@ describe('loadConfig', () => {
       }),
     ).not.toThrow();
   });
+
+  it('requires a Gemini API key only when Gemini is selected', () => {
+    expect(() =>
+      loadConfig({
+        ...requiredEnvironment,
+        JWT_ACCESS_SECRET: 'a-user-generated-random-secret-of-at-least-32-characters',
+        LLM_PROVIDER: 'gemini',
+      }),
+    ).toThrow('GEMINI_API_KEY is required when LLM_PROVIDER=gemini.');
+
+    expect(() =>
+      loadConfig({
+        ...requiredEnvironment,
+        JWT_ACCESS_SECRET: 'a-user-generated-random-secret-of-at-least-32-characters',
+        LLM_PROVIDER: 'gemini',
+        GEMINI_API_KEY: 'test-key',
+      }),
+    ).not.toThrow();
+  });
 });

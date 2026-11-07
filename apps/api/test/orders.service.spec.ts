@@ -37,7 +37,10 @@ function createService() {
       findMany: jest.fn().mockResolvedValue([{ variantId: 'variant-1', quantity: 2 }]),
       updateMany: jest.fn().mockResolvedValue({ count: 1 }),
     },
-    productVariant: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
+    productVariant: {
+      updateMany: jest.fn().mockResolvedValue({ count: 1 }),
+      findMany: jest.fn().mockResolvedValue([{ productId: 'product-1' }]),
+    },
     loyaltyTransaction: { findUnique: jest.fn().mockResolvedValue(null), create: jest.fn() },
     loyaltyAccount: { upsert: jest.fn().mockResolvedValue({ id: 'loyalty-1' }) },
     voucherRedemption: { deleteMany: jest.fn().mockResolvedValue({ count: 1 }) },
@@ -48,7 +51,9 @@ function createService() {
     ),
   };
   return {
-    service: new OrdersService(prisma as unknown as PrismaService),
+    service: new OrdersService(prisma as unknown as PrismaService, {
+      enqueueProduct: jest.fn().mockResolvedValue(undefined),
+    }),
     transaction,
   };
 }

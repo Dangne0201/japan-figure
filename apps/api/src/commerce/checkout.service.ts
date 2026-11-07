@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,6 +17,7 @@ import {
 } from '@prisma/client';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service';
+import { KnowledgeQueue, type ProductKnowledgeQueue } from '../knowledge/knowledge-queue.service';
 import type { CheckoutQuoteDto, PlaceOrderDto } from './checkout.dto';
 import {
   calculateCheckoutAmounts,
@@ -44,21 +46,27 @@ interface CheckoutLine {
   unitPriceVnd: number;
   weightGrams: number;
   stockAvailable: number;
+  productId: string;
 }
 
 @Injectable()
 export class CheckoutService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(KnowledgeQueue) private readonly knowledgeQueue: ProductKnowledgeQueue,
+  ) {}
 
   quote(userId: string, input: CheckoutQuoteDto) {
     return this.buildQuote(this.prisma, userId, input);
   }
 
   async placeOrder(userId: string, input: PlaceOrderDto): Promise<Order> {
+    let changedProductIds: string[] = [];
     try {
-      return await this.prisma.$transaction(
+      const order = await this.prisma.$transaction(
         async (transaction) => {
           const quote = await this.buildQuote(transaction, userId, input);
+          changedProductIds = [...new Set(quote.lines.map((line) => line.productId))];
           const cart = await transaction.cart.findUnique({ where: { userId } });
           if (!cart) throw new BadRequestException('Giỏ hàng đang trống.');
 
@@ -190,6 +198,10 @@ export class CheckoutService {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
+      await Promise.all(
+        changedProductIds.map((productId) => this.knowledgeQueue.enqueueProduct(productId)),
+      );
+      return order;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
         throw new ConflictException('Đơn hàng vừa thay đổi. Vui lòng tính lại trước khi đặt.');
@@ -228,6 +240,7 @@ export class CheckoutService {
         throw new BadRequestException(`Chưa có khối lượng hợp lệ cho ${product.name}.`);
       }
       return {
+        productId: product.id,
         productVariantId: variant.id,
         productSlug: product.slug,
         productName: product.name,

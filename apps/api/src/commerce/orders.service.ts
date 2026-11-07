@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import {
   ReviewStatus,
 } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
+import { KnowledgeQueue, type ProductKnowledgeQueue } from '../knowledge/knowledge-queue.service';
 import { releaseOrderCommitments, transitionOrder } from './order-lifecycle';
 import type {
   AddWishlistItemDto,
@@ -30,7 +32,10 @@ const orderDetails = {
 
 @Injectable()
 export class OrdersService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(KnowledgeQueue) private readonly knowledgeQueue: ProductKnowledgeQueue,
+  ) {}
 
   async list(userId: string) {
     return this.prisma.order.findMany({
@@ -56,8 +61,9 @@ export class OrdersService {
   }
 
   async recordPaymentOutcome(userId: string, orderId: string, input: PaymentOutcomeDto) {
+    let changedProductIds: string[] = [];
     try {
-      return await this.prisma.$transaction(
+      const orderResult = await this.prisma.$transaction(
         async (transaction) => {
           const order = await transaction.order.findFirst({
             where: { id: orderId, userId },
@@ -129,7 +135,7 @@ export class OrdersService {
                   ? 'Thanh toán mô phỏng thất bại.'
                   : 'Khách hủy thanh toán mô phỏng.',
             });
-            await releaseOrderCommitments(transaction, order);
+            changedProductIds = await releaseOrderCommitments(transaction, order);
           }
 
           return transaction.order.findUniqueOrThrow({
@@ -139,6 +145,8 @@ export class OrdersService {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
+      await this.enqueueChangedProducts(changedProductIds);
+      return orderResult;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
         throw new ConflictException('Thanh toán vừa được cập nhật. Hãy tải lại đơn hàng.');
@@ -151,8 +159,9 @@ export class OrdersService {
   }
 
   async cancel(userId: string, orderId: string) {
+    let changedProductIds: string[] = [];
     try {
-      return await this.prisma.$transaction(
+      const orderResult = await this.prisma.$transaction(
         async (transaction) => {
           const order = await transaction.order.findFirst({
             where: { id: orderId, userId },
@@ -180,7 +189,7 @@ export class OrdersService {
             actorUserId: userId,
             reason: 'Khách yêu cầu hủy đơn mô phỏng.',
           });
-          await releaseOrderCommitments(transaction, order);
+          changedProductIds = await releaseOrderCommitments(transaction, order);
           return transaction.order.findUniqueOrThrow({
             where: { id: order.id },
             include: orderDetails,
@@ -188,6 +197,8 @@ export class OrdersService {
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
+      await this.enqueueChangedProducts(changedProductIds);
+      return orderResult;
     } catch (error) {
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2034') {
         throw new ConflictException('Đơn hàng vừa được cập nhật. Hãy tải lại trạng thái mới nhất.');
@@ -206,6 +217,7 @@ export class OrdersService {
         if (order.status !== OrderStatus.DELIVERED) {
           throw new ConflictException('Chỉ có thể gửi yêu cầu cho đơn đã giao.');
         }
+
         const returnDeadline = order.deliveredAt
           ? order.deliveredAt.getTime() + 7 * 24 * 60 * 60_000
           : 0;
@@ -312,5 +324,9 @@ export class OrdersService {
       }
       throw error;
     }
+  }
+
+  private async enqueueChangedProducts(productIds: string[]): Promise<void> {
+    await Promise.all(productIds.map((productId) => this.knowledgeQueue.enqueueProduct(productId)));
   }
 }

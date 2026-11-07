@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 4 — Admin Part 1 is complete and merged to `main` as `f79e01c`. Part 2 is complete and merged from `phase/4-admin-operations`; Phase 4 is ready for owner review.
+Phase 5a — Chatbot knowledge and retrieval is complete and verified on `phase/5a-chatbot-knowledge`. Phase 4 is complete and merged to `main`.
 
 ## Completed
 
@@ -26,6 +26,11 @@ Phase 4 — Admin Part 1 is complete and merged to `main` as `f79e01c`. Part 2 i
 - Phase 4 Part 2 implementation: added admin order search, eligible-order cancellation with stock/points/voucher commitment release, return-request approval/rejection, voucher CRUD, banner management and public storefront display, review moderation, customer disable/enable, and paginated audit-log search. All mutations write audit records transactionally.
 - Added narrow migrations for the `REJECTED` return status and banner table, ordered after the existing admin audit migration.
 - Added an operations panel to `/admin` for these workflows and explicit messaging that simulated payment, delivery, and returns do not perform real transactions or refunds.
+- Phase 4 was self-reviewed, verified, published, and fast-forward merged to `main`; the owner approved continuing to Phase 5a.
+- Phase 5a scope is the offline Vietnamese knowledge base, product/document indexing, hybrid retrieval, provider abstraction, and benchmark. The chatbot conversation API/UI remains outside this phase.
+- Added the initial pgvector-backed knowledge-chunk schema/migration, environment configuration for Ollama/Gemini and retrieval, Markdown chunking/normalization, Ollama embedding client, and Ollama/Gemini chat provider with retry and streaming support.
+- Added document/product indexing, hybrid vector/trigram retrieval, BullMQ re-indexing hooks for catalog and stock changes, CLI re-indexing, and nine committed Vietnamese knowledge documents.
+- Added provider, chunking, retrieval, indexing, env-validation, and streaming tests. The Windows benchmark measures Ollama's process working set while generation runs; it unloads models after each benchmark.
 
 ## Verification
 
@@ -46,15 +51,22 @@ Phase 4 — Admin Part 1 is complete and merged to `main` as `f79e01c`. Part 2 i
 - Phase 4 Part 2 verification passed: formatting, lint, 15 API suites/50 tests, 4 web tests, API and web production builds, and 11 applied Prisma migrations.
 - Compose verified all seven long-running services healthy and the migration service exited successfully. Through Nginx, verified the storefront/admin page, catalog banner response, API health, and guest denial (401) for every new admin endpoint.
 - Authenticated local runtime smoke tests passed for admin order/voucher/banner/review/customer/audit listing; voucher create/update; banner create/update/public display/delete; customer disable/enable and disabled-session rejection; and audit-log browsing. Temporary admin, customer, voucher, banner, and audit data were removed and verified absent.
+- Phase 5a migration/runtime verification: Prisma reports 12 repository migrations with no pending changes; PostgreSQL contains the `knowledge_chunks` table. Reindexed 9 knowledge documents and 50 published products, all with embeddings. Compose API, worker, and supporting services are healthy.
+- A real embedding-backed retrieval smoke test for “Làm thế nào để bảo quản figure khỏi bụi?” returned the relevant `figure-care.md` source. The test exposed punctuation-sensitive normalization and candidate filtering; fixed both and reran retrieval successfully.
+- Ran the grounded chat benchmark for both configured models. On this Windows host with CPU inference, 3B measured 7.01 tokens/s and 2.14 GiB peak combined process working set; 1.5B measured 10.99 tokens/s and 1.22 GiB. Both produced a correct answer from the supplied source; 3B was more complete. The benchmark now unloads existing models, includes `llama-server` process memory, uses `/api/chat`, and prints the answer.
+- Initial whole-model sampling omitted `llama-server.exe`, producing invalid low memory figures. Fixed the sampler and reran from an unloaded baseline; only the corrected results are documented.
+- Final API verification passed: build, lint, all 18 suites/62 tests, and Prettier. Compose configuration and `git diff --check` passed. `/api/health` returned HTTP 200 with database, Redis, and Ollama all up.
+- Phase 5a code self-review found and fixed the live retrieval issue; no other actionable issue found in indexing lifecycle, provider retry/streaming, queue wiring, or stock-change hooks.
 
 ## Known issues and limits
 
 - Commerce pages build and return HTTP 200, but an integrated-browser CDP timeout prevented a fresh phone-width visual check. The owner should complete the manual phone checklist before review.
-- Ollama is offline; this is non-fatal and does not affect Phase 3a or 3b.
+- Model quality results cover one short grounded question only; expand the answer-quality evaluation before relying on either model for general customer support.
 - Catalog prices, stock, JAN-like identifiers, and release dates are fictional demo data. `npm audit` has reported three high-severity issues through Prisma's `deepmerge-ts`; its automatic fix requires a breaking Prisma major upgrade and was not applied.
 - A fresh phone-width visual review remains a manual owner checklist item; the admin API and route were runtime-verified, but no phone screenshot was captured.
 - The repository does not provision default admin credentials. The owner must set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the ignored `.env` and run `docker compose --profile tools run --rm seed`.
+- The model-quality check covers one grounded question per model only; evaluate a representative Vietnamese FAQ set before exposing general chatbot answers.
 
 ## Next step
 
-Wait for owner review and approval before starting Phase 5. The owner should complete the manual phone-width visual checklist.
+Publish and fast-forward merge the verified `phase/5a-chatbot-knowledge` branch, then stop for owner review. Do not start Phase 5b until the owner explicitly asks.
