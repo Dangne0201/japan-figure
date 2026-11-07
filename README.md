@@ -27,11 +27,26 @@ Only self-made/generated placeholder images will be committed. Once catalog supp
 
 ## Environment checklist
 
-- Install Docker Desktop and enable the WSL2 backend.
-- Install Node.js LTS, Git, and GitHub CLI (`gh`); authenticate with `gh auth login` before repository publishing.
-- Install Ollama on Windows if using local AI. Planned models: `qwen2.5:3b-instruct`, fallback `qwen2.5:1.5b-instruct`, and embedding model `bge-m3`.
+- Install Docker Desktop and enable the WSL2 backend. Start Docker Desktop and wait for its engine to become ready before using Compose.
+- Install Node.js LTS, Git, and GitHub CLI (`winget install --id GitHub.cli -e`). Then run `gh auth login` and `gh auth status` before repository publishing.
+- Create or edit `%UserProfile%\.wslconfig` with:
+
+  ```ini
+  [wsl2]
+  memory=6GB
+  ```
+
+  Apply changes by running `wsl --shutdown`, then restart Docker Desktop. This is a starting point for the 16 GB laptop, not a required universal value.
+- Install Ollama for Windows from its official installer. In PowerShell, download the planned models (this can require substantial disk space and time):
+
+  ```powershell
+  ollama pull qwen2.5:3b-instruct
+  ollama pull qwen2.5:1.5b-instruct
+  ollama pull bge-m3
+  ```
+
 - If containers cannot reach Ollama at `host.docker.internal:11434`, configure host Ollama to listen on `0.0.0.0` and allow it through Windows Firewall only as appropriate for the private network.
-- Find the laptop LAN IPv4 address with `ipconfig`; do not expose database, Redis, or API ports to the LAN.
+- Find the laptop LAN IPv4 address with `ipconfig`, under the Wi-Fi adapter's IPv4 Address. For phone testing, create a Windows Defender Firewall inbound rule for TCP port 8080, allow the connection on the Private profile only, and use `http://<LAN-IP>:8080` on the same Wi-Fi. Do not expose database, Redis, or API ports to the LAN.
 
 ## License
 
