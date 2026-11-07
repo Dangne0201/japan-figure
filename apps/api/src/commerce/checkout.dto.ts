@@ -1,5 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { PaymentMethod } from '@prisma/client';
 import { IsInt, IsOptional, IsString, Matches, Max, Min } from 'class-validator';
+import { IsEnum } from 'class-validator';
 
 export class CheckoutQuoteDto {
   @ApiProperty()
@@ -27,4 +29,9 @@ export class CheckoutQuoteDto {
   redeemPoints?: number;
 }
 
-export class PlaceOrderDto extends CheckoutQuoteDto {}
+export class PlaceOrderDto extends CheckoutQuoteDto {
+  @ApiPropertyOptional({ enum: PaymentMethod, default: PaymentMethod.MOCK_TRANSFER })
+  @IsOptional()
+  @IsEnum(PaymentMethod)
+  paymentMethod?: PaymentMethod;
+}

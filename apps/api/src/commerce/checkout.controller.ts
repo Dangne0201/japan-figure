@@ -3,7 +3,7 @@ import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AccessTokenGuard } from '../auth/access-token.guard';
 import type { AuthenticatedUser } from '../auth/auth.types';
-import { CheckoutQuoteDto } from './checkout.dto';
+import { CheckoutQuoteDto, PlaceOrderDto } from './checkout.dto';
 import { CheckoutService } from './checkout.service';
 
 @ApiTags('checkout')
@@ -23,7 +23,7 @@ export class CheckoutController {
 
   @Post('place')
   @ApiOperation({ summary: 'Place a simulated order; no payment or real transaction occurs' })
-  place(@Req() request: Request & { user: AuthenticatedUser }, @Body() body: CheckoutQuoteDto) {
+  place(@Req() request: Request & { user: AuthenticatedUser }, @Body() body: PlaceOrderDto) {
     return this.checkout.placeOrder(request.user.id, body);
   }
 }

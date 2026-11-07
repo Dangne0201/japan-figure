@@ -24,6 +24,7 @@ const item = {
     sku: 'JF-1',
     name: 'Bản tiêu chuẩn',
     stockOnHand: 5,
+    stockReserved: 0,
     weightGrams: 1_000,
     product: {
       slug: 'figure-1',
@@ -156,6 +157,19 @@ describe('CheckoutService', () => {
         ...item,
         quantity: 6,
         variant: { ...item.variant, stockOnHand: 5 },
+      },
+    });
+    await expect(service.quote('user-1', { addressId: address.id })).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+  });
+
+  it('subtracts active reservations from stock available to checkout', async () => {
+    const { service } = createService({
+      cartItem: {
+        ...item,
+        quantity: 4,
+        variant: { ...item.variant, stockReserved: 2 },
       },
     });
     await expect(service.quote('user-1', { addressId: address.id })).rejects.toBeInstanceOf(

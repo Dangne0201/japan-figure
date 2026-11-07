@@ -23,7 +23,7 @@ export interface ProductCard {
     id: string;
     sku: string;
     name: string;
-    stockOnHand: number;
+    stockAvailable: number;
     weightGrams: number;
   }>;
 }
@@ -71,9 +71,12 @@ export async function getCatalogPage(params: URLSearchParams): Promise<CatalogPa
   return getJson(`/api/catalog/products${search ? `?${search}` : ''}`);
 }
 
-export async function getProduct(
-  slug: string,
-): Promise<{ product: ProductCard; related: ProductCard[] }> {
+export async function getProduct(slug: string): Promise<{
+  product: ProductCard;
+  related: ProductCard[];
+  reviews: Array<{ rating: number; body: string; createdAt: string; user: { name: string } }>;
+  averageRating: number | null;
+}> {
   return getJson(`/api/catalog/products/${encodeURIComponent(slug)}`);
 }
 

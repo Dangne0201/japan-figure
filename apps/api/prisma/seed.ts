@@ -155,7 +155,14 @@ async function seed(): Promise<void> {
         stockOnHand: product.stock,
         weightGrams: 1000,
       },
-      update: { productId: saved.id, stockOnHand: product.stock, weightGrams: 1000 },
+      update: { productId: saved.id, weightGrams: 1000 },
+    });
+    await prisma.productVariant.updateMany({
+      where: {
+        sku: `JF-${product.slug.toUpperCase()}`,
+        stockReserved: { lte: product.stock },
+      },
+      data: { stockOnHand: product.stock },
     });
 
     await prisma.productImage.upsert({

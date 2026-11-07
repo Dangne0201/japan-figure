@@ -4,10 +4,19 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { LoyaltyTransactionType, Prisma, VoucherType, type Order } from '@prisma/client';
+import {
+  LoyaltyTransactionType,
+  OrderStatus,
+  PaymentMethod,
+  PaymentStatus,
+  Prisma,
+  ReservationStatus,
+  VoucherType,
+  type Order,
+} from '@prisma/client';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service';
-import type { CheckoutQuoteDto } from './checkout.dto';
+import type { CheckoutQuoteDto, PlaceOrderDto } from './checkout.dto';
 import {
   calculateCheckoutAmounts,
   calculateLoyaltyDiscount,
@@ -34,7 +43,7 @@ interface CheckoutLine {
   quantity: number;
   unitPriceVnd: number;
   weightGrams: number;
-  stockOnHand: number;
+  stockAvailable: number;
 }
 
 @Injectable()
@@ -45,7 +54,7 @@ export class CheckoutService {
     return this.buildQuote(this.prisma, userId, input);
   }
 
-  async placeOrder(userId: string, input: CheckoutQuoteDto): Promise<Order> {
+  async placeOrder(userId: string, input: PlaceOrderDto): Promise<Order> {
     try {
       return await this.prisma.$transaction(
         async (transaction) => {
@@ -54,11 +63,14 @@ export class CheckoutService {
           if (!cart) throw new BadRequestException('Giỏ hàng đang trống.');
 
           for (const line of quote.lines) {
-            const updated = await transaction.productVariant.updateMany({
-              where: { id: line.productVariantId, stockOnHand: { gte: line.quantity } },
-              data: { stockOnHand: { decrement: line.quantity } },
-            });
-            if (updated.count !== 1) {
+            const updated = await transaction.$executeRaw`
+              UPDATE "product_variants"
+              SET "stock_reserved" = "stock_reserved" + ${line.quantity},
+                  "updated_at" = CURRENT_TIMESTAMP
+              WHERE "id" = ${line.productVariantId}
+                AND "stock_on_hand" - "stock_reserved" >= ${line.quantity}
+            `;
+            if (updated !== 1) {
               throw new ConflictException(`Sản phẩm ${line.productName} vừa hết hàng.`);
             }
           }
@@ -78,11 +90,21 @@ export class CheckoutService {
             }
           }
 
+          const paymentMethod = input.paymentMethod ?? PaymentMethod.MOCK_TRANSFER;
+          const now = new Date();
+          const paymentDeadlineAt = new Date(
+            now.getTime() +
+              (paymentMethod === PaymentMethod.MOCK_TRANSFER ? 15 * 60_000 : 30 * 24 * 60 * 60_000),
+          );
+          const initialStatus =
+            paymentMethod === PaymentMethod.MOCK_COD
+              ? OrderStatus.PROCESSING
+              : OrderStatus.PENDING_PAYMENT;
           const order = await transaction.order.create({
             data: {
               orderNumber: createOrderNumber(),
               userId,
-              status: 'SIMULATED',
+              status: initialStatus,
               recipientName: quote.address.recipientName,
               phone: quote.address.phone,
               streetAddress: quote.address.streetAddress,
@@ -104,6 +126,7 @@ export class CheckoutService {
               totalVnd: quote.amounts.totalVnd,
               pointsEarned: quote.amounts.pointsEarned,
               pointsRedeemed: quote.amounts.pointsRedeemed,
+              paymentDeadlineAt,
               items: {
                 create: quote.lines.map((line) => ({
                   productVariantId: line.productVariantId,
@@ -115,6 +138,31 @@ export class CheckoutService {
                   unitPriceVnd: line.unitPriceVnd,
                   weightGrams: line.weightGrams,
                 })),
+              },
+              payment: {
+                create: {
+                  method: paymentMethod,
+                  status: PaymentStatus.PENDING,
+                  amountVnd: quote.amounts.totalVnd,
+                  expiresAt: paymentDeadlineAt,
+                },
+              },
+              reservations: {
+                create: quote.lines.map((line) => ({
+                  variantId: line.productVariantId,
+                  quantity: line.quantity,
+                  status: ReservationStatus.ACTIVE,
+                  expiresAt: paymentDeadlineAt,
+                })),
+              },
+              statusHistory: {
+                create: {
+                  toStatus: initialStatus,
+                  reason:
+                    paymentMethod === PaymentMethod.MOCK_COD
+                      ? 'Tạo đơn COD mô phỏng; thu tiền khi giao hàng.'
+                      : 'Chờ kết quả chuyển khoản mô phỏng.',
+                },
               },
             },
           });
@@ -134,22 +182,11 @@ export class CheckoutService {
               },
             });
           }
-          if (quote.amounts.pointsEarned > 0) {
-            await transaction.loyaltyAccount.update({
-              where: { id: account.id },
-              data: { pointsBalance: { increment: quote.amounts.pointsEarned } },
-            });
-            await transaction.loyaltyTransaction.create({
-              data: {
-                loyaltyAccountId: account.id,
-                orderId: order.id,
-                type: LoyaltyTransactionType.EARN,
-                pointsDelta: quote.amounts.pointsEarned,
-              },
-            });
-          }
           await transaction.cartItem.deleteMany({ where: { cartId: cart.id } });
-          return order;
+          return transaction.order.findUniqueOrThrow({
+            where: { id: order.id },
+            include: { payment: true },
+          });
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable },
       );
@@ -181,9 +218,10 @@ export class CheckoutService {
       if (!product.publishedAt) {
         throw new ConflictException(`Sản phẩm ${product.name} hiện không còn được bán.`);
       }
-      if (variant.stockOnHand < item.quantity) {
+      const stockAvailable = variant.stockOnHand - variant.stockReserved;
+      if (stockAvailable < item.quantity) {
         throw new ConflictException(
-          `${product.name} chỉ còn ${variant.stockOnHand} sản phẩm trong kho.`,
+          `${product.name} chỉ còn ${stockAvailable} sản phẩm khả dụng trong kho.`,
         );
       }
       if (!Number.isSafeInteger(variant.weightGrams) || variant.weightGrams < 1) {
@@ -198,7 +236,7 @@ export class CheckoutService {
         quantity: item.quantity,
         unitPriceVnd: product.salePriceVnd ?? product.priceVnd,
         weightGrams: variant.weightGrams,
-        stockOnHand: variant.stockOnHand,
+        stockAvailable,
       };
     });
 

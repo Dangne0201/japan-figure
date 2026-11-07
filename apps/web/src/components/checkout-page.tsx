@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { formatVnd } from '../lib/catalog';
 import { authenticatedFetch } from '../lib/api';
@@ -45,20 +46,15 @@ interface Quote {
   freeShippingThresholdVnd: number;
 }
 
-interface SimulatedOrder {
-  orderNumber: string;
-  totalVnd: number;
-  pointsEarned: number;
-}
-
 export default function CheckoutPage() {
+  const router = useRouter();
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [addressId, setAddressId] = useState('');
   const [carrierId, setCarrierId] = useState('');
   const [voucherCode, setVoucherCode] = useState('');
   const [redeemPoints, setRedeemPoints] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState<'MOCK_TRANSFER' | 'MOCK_COD'>('MOCK_TRANSFER');
   const [quote, setQuote] = useState<Quote | null>(null);
-  const [order, setOrder] = useState<SimulatedOrder | null>(null);
   const [loading, setLoading] = useState(true);
   const [needsLogin, setNeedsLogin] = useState(false);
   const [pending, setPending] = useState(false);
@@ -102,6 +98,7 @@ export default function CheckoutPage() {
           ...(nextCarrierId ? { carrierId: nextCarrierId } : {}),
           ...(voucherCode.trim() ? { voucherCode: voucherCode.trim() } : {}),
           redeemPoints,
+          paymentMethod,
         }),
       });
       if (!response.ok) {
@@ -132,14 +129,15 @@ export default function CheckoutPage() {
           carrierId,
           ...(voucherCode.trim() ? { voucherCode: voucherCode.trim() } : {}),
           redeemPoints,
+          paymentMethod,
         }),
       });
       if (!response.ok) {
         const result = (await response.json()) as { message?: string | string[] };
         throw new Error(Array.isArray(result.message) ? result.message.join(' ') : result.message);
       }
-      setOrder((await response.json()) as SimulatedOrder);
-      setQuote(null);
+      const result = (await response.json()) as { id: string };
+      router.push(`/account/orders/${encodeURIComponent(result.id)}`);
     } catch (reason) {
       setQuote(null);
       setError(reason instanceof Error ? reason.message : 'Không thể ghi nhận đơn hàng mô phỏng.');
@@ -159,32 +157,6 @@ export default function CheckoutPage() {
           </p>
           <Link className="button-primary mt-5" href="/login">
             Đăng nhập
-          </Link>
-        </div>
-      </section>
-    );
-  }
-
-  if (order) {
-    return (
-      <section className="page-shell py-12">
-        <div className="mx-auto max-w-xl rounded-3xl bg-white p-7 text-center">
-          <p className="text-sm font-semibold text-emerald-800">
-            Đơn hàng mô phỏng đã được ghi nhận
-          </p>
-          <h1 className="mt-3 text-2xl font-semibold">{order.orderNumber}</h1>
-          <p className="mt-3">
-            Tổng cộng: <strong>{formatVnd(order.totalVnd)}</strong>
-          </p>
-          <p className="mt-2 text-sm text-brand-ink/70">
-            Điểm tích lũy: {order.pointsEarned.toLocaleString('vi-VN')} điểm.
-          </p>
-          <p className="mt-5 rounded-2xl bg-brand-rose/30 p-4 text-xs leading-5">
-            Đây chỉ là luồng học tập mô phỏng. Không thanh toán, không gửi đơn cho hãng vận chuyển
-            và không phát sinh giao dịch thật.
-          </p>
-          <Link className="button-primary mt-5" href="/products">
-            Tiếp tục xem figure
           </Link>
         </div>
       </section>
@@ -321,6 +293,39 @@ export default function CheckoutPage() {
             <h2 className="text-lg font-semibold">Tóm tắt đơn hàng</h2>
             {quote ? (
               <>
+                <fieldset className="mt-4 space-y-3">
+                  <legend className="text-sm font-semibold">Thanh toán mô phỏng</legend>
+                  <label className="flex items-start gap-3 rounded-2xl border border-brand-plum/10 p-3 text-sm">
+                    <input
+                      checked={paymentMethod === 'MOCK_TRANSFER'}
+                      name="payment-method"
+                      onChange={() => setPaymentMethod('MOCK_TRANSFER')}
+                      type="radio"
+                    />
+                    <span>
+                      <span className="block font-semibold">Chuyển khoản mô phỏng</span>
+                      <span className="text-xs text-brand-ink/60">
+                        Chọn kết quả thành công, thất bại hoặc hủy ở trang đơn hàng.
+                      </span>
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-3 rounded-2xl border border-brand-plum/10 p-3 text-sm">
+                    <input
+                      checked={paymentMethod === 'MOCK_COD'}
+                      name="payment-method"
+                      onChange={() => setPaymentMethod('MOCK_COD')}
+                      type="radio"
+                    />
+                    <span>
+                      <span className="block font-semibold">
+                        Thanh toán khi nhận hàng (COD mô phỏng)
+                      </span>
+                      <span className="text-xs text-brand-ink/60">
+                        Worker sẽ tự mô phỏng giao hàng; không thu tiền thật.
+                      </span>
+                    </span>
+                  </label>
+                </fieldset>
                 <dl className="mt-4 space-y-3 text-sm">
                   <div className="flex justify-between gap-4">
                     <dt>Tiền hàng</dt>

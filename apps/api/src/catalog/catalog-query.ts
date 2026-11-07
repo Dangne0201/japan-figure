@@ -20,6 +20,7 @@ export interface CatalogFilters {
 export function buildCatalogWhere(
   filters: CatalogFilters,
   matchingIds?: string[],
+  availableProductIds: string[] = [],
 ): Prisma.ProductWhereInput {
   const where: Prisma.ProductWhereInput = { publishedAt: { not: null } };
 
@@ -39,10 +40,13 @@ export function buildCatalogWhere(
   if (filters.newArrival !== undefined) where.isNewArrival = filters.newArrival;
   if (filters.saleOnly) where.salePriceVnd = { not: null };
   if (filters.availability === 'in-stock') {
-    where.OR = [{ isPreorder: true }, { variants: { some: { stockOnHand: { gt: 0 } } } }];
+    where.OR = [{ isPreorder: true }, { id: { in: availableProductIds } }];
   } else if (filters.availability === 'sold-out') {
     where.isPreorder = false;
-    where.variants = { every: { stockOnHand: 0 } };
+    where.id = {
+      ...(matchingIds ? { in: matchingIds } : {}),
+      notIn: availableProductIds,
+    };
   }
 
   return where;

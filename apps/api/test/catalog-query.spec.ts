@@ -38,12 +38,16 @@ describe('catalog query helpers', () => {
   });
 
   it('includes preorders as available and excludes them from sold-out products', () => {
-    expect(buildCatalogWhere({ availability: 'in-stock' })).toMatchObject({
-      OR: [{ isPreorder: true }, { variants: { some: { stockOnHand: { gt: 0 } } } }],
+    expect(
+      buildCatalogWhere({ availability: 'in-stock' }, undefined, ['available-product']),
+    ).toMatchObject({
+      OR: [{ isPreorder: true }, { id: { in: ['available-product'] } }],
     });
-    expect(buildCatalogWhere({ availability: 'sold-out' })).toMatchObject({
+    expect(
+      buildCatalogWhere({ availability: 'sold-out' }, undefined, ['available-product']),
+    ).toMatchObject({
       isPreorder: false,
-      variants: { every: { stockOnHand: 0 } },
+      id: { notIn: ['available-product'] },
     });
   });
 

@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatVnd, productImageUrl, type ProductCard as Product } from '../lib/catalog';
 import AddToCartButton from './add-to-cart-button';
+import WishlistButton from './wishlist-button';
 
 export default function ProductCard({ product }: { product: Product }) {
   const image = product.images[0];
@@ -55,9 +56,10 @@ export default function ProductCard({ product }: { product: Product }) {
           <AddToCartButton
             compact
             disabled={product.stock === 0}
-            variantId={product.variants.find((variant) => variant.stockOnHand > 0)?.id}
+            variantId={product.variants.find((variant) => variant.stockAvailable > 0)?.id}
           />
         ) : null}
+        <WishlistButton productSlug={product.slug} />
       </div>
     </article>
   );

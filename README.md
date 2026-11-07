@@ -6,7 +6,7 @@ A learning project simulating a Vietnamese anime-figure e-commerce shop. The int
 
 ## Project status
 
-The repository is implementing Phase 3a (accounts and core commerce). See [docs/PROGRESS.md](docs/PROGRESS.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DATA_MODEL.md](docs/DATA_MODEL.md), and [docs/ROADMAP.md](docs/ROADMAP.md).
+The repository is implementing Phase 3b (orders and payment simulation). See [docs/PROGRESS.md](docs/PROGRESS.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DATA_MODEL.md](docs/DATA_MODEL.md), and [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Planned stack
 
@@ -22,20 +22,29 @@ For faster file watching and dependency installation, place the repository in th
 1. Copy `.env.example` to `.env`, set a local PostgreSQL password, and replace `JWT_ACCESS_SECRET` with a random value of at least 32 characters. Generate one with `node -e "console.log(require('node:crypto').randomBytes(48).toString('base64url'))"`. Never commit `.env`. `DATABASE_URL` and `REDIS_URL` refer to internal Compose service names and are intended for containers.
 2. From PowerShell in the repository directory, run `docker compose up --build`. The development override enables hot reload. The first run downloads/builds images and may take several minutes. When running project npm commands directly in Windows PowerShell, use `npm.cmd` if the system blocks the `npm.ps1` script.
 3. Compose applies pending Prisma migrations automatically. Seed the 50-product learning catalog, demo vouchers, and default stock values with `docker compose exec api npm run db:seed --workspace apps/api`. The seed is idempotent and can be rerun to restore the versioned demo data.
-4. Open `http://localhost:8081` for the storefront. Create an account at `/register`, then open Mailpit at `http://localhost:8025` to use the verification or password-reset link. Sign in at `/login` and manage your profile at `/account`. Save delivery addresses at `/account/addresses`, add products to `/cart`, and try the explicitly simulated checkout at `/checkout`. Browse products at `/products`. Swagger is at `http://localhost:8081/api/docs`.
+4. Open `http://localhost:8081` for the storefront. Create an account at `/register`, then open Mailpit at `http://localhost:8025` to use the verification or password-reset link. Sign in at `/login` and manage your profile at `/account`. Save delivery addresses at `/account/addresses`, add products to `/cart`, and try the explicitly simulated checkout at `/checkout`. Review orders at `/account/orders` and saved products at `/account/wishlist`. Browse products at `/products`. Swagger is at `http://localhost:8081/api/docs`.
 5. To stop the stack, use `Ctrl+C`, then run `docker compose down`. To preserve the database, do not add `-v`.
 
 The web app is exposed on all host interfaces at port 8081 by default to avoid a known local project port collision. For phone testing, use the laptop's LAN IP on the same private Wi-Fi and allow only the chosen web port through Windows Firewall on the Private profile. API, database, and Redis ports are not published to the host/LAN. Mailpit UI is bound to localhost.
 Set the optional `SITE_URL` in `.env` to the LAN origin when product pages are shared from a phone; it controls absolute SEO/Open Graph URLs, auth email links, and the API's allowed browser origin. Compose defaults it to `http://localhost:${APP_PORT}`. `COOKIE_SECURE=false` is for local HTTP only; enable it when serving the app over HTTPS.
 
-### Phase 3a commerce simulation
+### Commerce simulation (Phases 3a–3b)
 
 - The bundled address picker uses the General Statistics Office's two-level reference snapshot retrieved on 2026-11-07: 34 province/city units and 3,321 commune-level units. Delivery street details remain free text; no live address service is required.
 - Guest carts are stored in Redis for up to 30 days and merge into the account cart on login. Products that are no longer available remain visible so they can be removed instead of silently disappearing.
 - Checkout offers simulated GHN, GHTK, and Viettel Post options. The estimated fees use the selected province region and package weight; shipping is free from 1,500,000 ₫ after voucher discounts or with the `FREESHIP` voucher. No carrier is contacted.
 - The seed includes `FIGURE10` (10% off, 500,000 ₫ minimum, 200,000 ₫ maximum discount) and `FREESHIP` (300,000 ₫ minimum). Both are demo vouchers with usage limits and expiry dates enforced by the API.
 - Loyalty earns 1 point per 10,000 ₫ of eligible merchandise after discounts; 100 points redeem for 10,000 ₫. Points never discount shipping.
-- Confirming checkout writes a `SIMULATED` order, updates demo stock, and clears the account cart. It does not charge money, send a real email, or submit a delivery request. Rerunning the seed restores catalog stock but keeps order history.
+- New checkout orders reserve stock and clear the account cart. Public availability subtracts reservations; on-hand stock is decremented when the simulated order ships. A pending transfer expires after 15 minutes; failure, cancellation, or expiry releases its stock, voucher use, and redeemed points.
+- Supported payment choices are fake bank transfer and fake COD. Transfer success/failure/cancel is selected on the order page. COD is marked paid only when the worker simulates delivery. There is no card form, payment provider, real charge, carrier request, or refund.
+- The BullMQ worker checks expiry and fulfillment every 15 seconds. After payment, demo orders move to preparation after 15 seconds, shipment after 30 more seconds, and delivery after another 30 seconds; generated tracking numbers and Mailpit order-status messages are fictional. Earned points are credited only on simulated delivery. A return request is available for seven days after delivery and does not issue a real refund.
+- Reviews require a delivered purchase and remain pending moderation; only approved reviews appear publicly. Wishlist and order data require authentication and are always scoped to the signed-in customer.
+- The PWA caches only versioned same-origin static assets and a static offline page. It never caches API responses, storefront pages, or account/order data. On localhost, browsers permit service workers over HTTP; installing from another device on the LAN requires HTTPS. Plain-HTTP LAN access remains available for regular browsing but is not installable as a PWA.
+- Rerunning the seed restores versioned catalog stock when doing so will not violate active reservations; it keeps order history and does not clear active reservations.
+
+### Windows and WSL2
+
+For faster installs and file watching, keep the repository inside the WSL2 Linux filesystem (for example `~/projects/japan-figure`) rather than under `/mnt/f`. Limit WSL2 memory to about 6 GB in `%UserProfile%\.wslconfig` so Docker and host-side Ollama retain RAM. Configure service workers for LAN installation only after setting up HTTPS and enabling `COOKIE_SECURE=true`.
 
 ### Troubleshooting
 

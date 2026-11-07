@@ -7,6 +7,7 @@ import SiteFooter from '../../../components/site-footer';
 import SiteHeader from '../../../components/site-header';
 import { formatVnd, getProduct, productImageUrl } from '../../../lib/catalog';
 import AddToCartButton from '../../../components/add-to-cart-button';
+import WishlistButton from '../../../components/wishlist-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -109,9 +110,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             {!product.isPreorder ? (
               <AddToCartButton
                 disabled={product.stock === 0}
-                variantId={product.variants.find((variant) => variant.stockOnHand > 0)?.id}
+                variantId={product.variants.find((variant) => variant.stockAvailable > 0)?.id}
               />
             ) : null}
+            <WishlistButton productSlug={product.slug} />
             <div className="mt-6 flex flex-wrap gap-2">
               <span className="badge">{category}</span>
               {product.isPreorder && <span className="badge">Mô phỏng: đặt trước</span>}
@@ -166,6 +168,37 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           </section>
         </div>
       </div>
+      <section className="page-shell py-8" aria-labelledby="reviews-title">
+        <div className="rounded-3xl bg-white p-5 sm:p-7">
+          <h2 className="text-xl font-semibold" id="reviews-title">
+            Đánh giá đã duyệt
+            {result.averageRating !== null ? (
+              <span className="ml-2 text-sm font-medium text-brand-plum">
+                ★ {result.averageRating.toFixed(1)} / 5
+              </span>
+            ) : null}
+          </h2>
+          {result.reviews.length ? (
+            <ul className="mt-4 divide-y divide-brand-plum/10">
+              {result.reviews.map((review, index) => (
+                <li className="py-4 first:pt-0 last:pb-0" key={`${review.createdAt}-${index}`}>
+                  <p className="font-semibold">
+                    {'★'.repeat(review.rating)}{' '}
+                    <span className="text-sm font-normal text-brand-ink/60">
+                      {review.user.name}
+                    </span>
+                  </p>
+                  <p className="mt-2 text-sm leading-6">{review.body}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-sm text-brand-ink/65">
+              Chưa có đánh giá được duyệt. Chỉ khách đã nhận hàng mới có thể gửi đánh giá.
+            </p>
+          )}
+        </div>
+      </section>
       {related.length > 0 && (
         <section className="page-shell py-10" aria-labelledby="related-title">
           <h2 id="related-title" className="mb-5 text-2xl font-semibold">

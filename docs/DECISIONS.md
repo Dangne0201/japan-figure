@@ -105,3 +105,13 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 
 - At the owner's request, finish each phase, run a self-review and verification, then publish the phase branch and merge it to `main` if no actionable issues remain. Start the next phase on its own branch without waiting for another approval. Do not create a pull request unless explicitly requested.
 - Keep phase-end updates concise: report whether the phase is complete and whether checks are passing; summarize any remaining blocker when a phase cannot be fully verified.
+
+## 2026-11-07 — Phase 3b simulated order lifecycle
+
+- Reserve stock at checkout and decrement on-hand stock only when a simulated transfer order ships. Failed, cancelled, or expired pending payments release reservations, voucher usage, and redeemed points atomically.
+- Support simulated bank transfer and cash-on-delivery only; never collect card details or contact a payment provider. Transfer orders require a fake success/failure/cancel result, while COD remains unpaid until simulated delivery.
+- Credit earned loyalty points on simulated delivery. Accept return requests within seven days of simulated delivery; record them for delivered orders but never issue a real refund.
+- Run expiry, fulfillment, and fake Mailpit notification jobs through BullMQ. The worker advances demo fulfillment quickly for local testing; all statuses and tracking identifiers are fictional.
+- Split new PostgreSQL enum values into a preceding migration because a newly added enum value cannot be used as a column default before its transaction commits. Keep migration timestamps after the existing checkout migration.
+- Cache only same-origin static assets and the static offline page in the PWA service worker; do not cache pages, APIs, or account/order data. Installation on a phone over LAN requires HTTPS; localhost is browser-trusted for local development.
+- Re-resolve Docker service names from Nginx rather than pinning API/web container IPs, so replacing an application container does not require restarting the reverse proxy.

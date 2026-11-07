@@ -67,6 +67,7 @@ describe('CartService', () => {
           sku: 'JF-1',
           name: 'Standard',
           stockOnHand: 1,
+          stockReserved: 0,
           product: {
             publishedAt: new Date(),
             priceVnd: 100_000,
@@ -92,6 +93,7 @@ describe('CartService', () => {
           sku: 'JF-1',
           name: 'Standard',
           stockOnHand: 2,
+          stockReserved: 0,
           product: { publishedAt: new Date(), priceVnd: 100_000, salePriceVnd: null },
         }),
       },

@@ -13,7 +13,16 @@ const productInclude = {
   brand: true,
   series: true,
   categories: { include: { category: true } },
-  variants: { select: { id: true, stockOnHand: true, sku: true, name: true, weightGrams: true } },
+  variants: {
+    select: {
+      id: true,
+      stockOnHand: true,
+      stockReserved: true,
+      sku: true,
+      name: true,
+      weightGrams: true,
+    },
+  },
   images: { orderBy: { position: 'asc' as const } },
 };
 
@@ -62,7 +71,7 @@ export interface ProductCard {
     id: string;
     sku: string;
     name: string;
-    stockOnHand: number;
+    stockAvailable: number;
     weightGrams: number;
   }>;
 }
@@ -94,9 +103,12 @@ export class CatalogService {
       return { items: [], pagination: { page, limit, total: 0, pages: 0 } };
     }
 
+    const availableProductIds =
+      query.availability !== undefined ? await this.findAvailableProductIds() : [];
     const where = buildCatalogWhere(
       filters,
       matching?.map(({ id }) => id),
+      availableProductIds,
     );
     if (search) {
       const candidates = await this.prisma.product.findMany({
@@ -212,17 +224,48 @@ export class CatalogService {
     });
     if (!product) throw new NotFoundException('Không tìm thấy sản phẩm.');
 
-    const related = await this.prisma.product.findMany({
-      where: {
-        publishedAt: { not: null },
-        seriesId: product.seriesId,
-        id: { not: product.id },
-      },
-      include: productInclude,
-      orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
-      take: 4,
-    });
-    return { product: toProductCard(product), related: related.map(toProductCard) };
+    const [related, reviews, reviewAggregate] = await Promise.all([
+      this.prisma.product.findMany({
+        where: {
+          publishedAt: { not: null },
+          seriesId: product.seriesId,
+          id: { not: product.id },
+        },
+        include: productInclude,
+        orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
+        take: 4,
+      }),
+      this.prisma.review.findMany({
+        where: { productId: product.id, status: 'APPROVED' },
+        select: {
+          rating: true,
+          body: true,
+          createdAt: true,
+          user: { select: { name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 20,
+      }),
+      this.prisma.review.aggregate({
+        where: { productId: product.id, status: 'APPROVED' },
+        _avg: { rating: true },
+      }),
+    ]);
+    return {
+      product: toProductCard(product),
+      related: related.map(toProductCard),
+      reviews,
+      averageRating: reviewAggregate._avg.rating,
+    };
+  }
+
+  private async findAvailableProductIds(): Promise<string[]> {
+    const rows = await this.prisma.$queryRaw<Array<{ productId: string }>>(Prisma.sql`
+      SELECT DISTINCT product_id AS "productId"
+      FROM product_variants
+      WHERE stock_on_hand > stock_reserved
+    `);
+    return rows.map(({ productId }) => productId);
   }
 
   private async findMatchingProductIds(query: string, take?: number) {
@@ -252,7 +295,11 @@ export class CatalogService {
 }
 
 function toProductCard(product: CatalogProduct): ProductCard {
-  const stock = product.variants.reduce((total, variant) => total + variant.stockOnHand, 0);
+  const variants = product.variants.map(({ stockOnHand, stockReserved, ...variant }) => ({
+    ...variant,
+    stockAvailable: stockOnHand - stockReserved,
+  }));
+  const stock = variants.reduce((total, variant) => total + variant.stockAvailable, 0);
   return {
     slug: product.slug,
     name: product.name,
@@ -274,6 +321,6 @@ function toProductCard(product: CatalogProduct): ProductCard {
     series: product.series,
     categories: product.categories.map(({ category }) => category),
     images: product.images.map(({ url, altText }) => ({ url, altText })),
-    variants: product.variants,
+    variants,
   };
 }

@@ -2,7 +2,7 @@
 
 The diagram captures the intended domain. Exact columns and constraints are finalized alongside each implementation phase. Monetary amounts are integer VND, never floating point.
 
-Phase 2 implements `Brand`, `Series`, `Category`, `Product`, `ProductCategory`, `ProductVariant`, and `ProductImage`. Categories are many-to-many with products so products can be classified flexibly. Stock is the sum of each variant's `stock_on_hand`; reservation accounting is deferred until checkout. `jan_code` currently contains a demo-only `JF2026-...` identifier, not a manufacturer JAN barcode.
+Phases 2–3b implement the catalog, accounts, addresses, carts, vouchers, loyalty, simulated orders/payments, reservations, return requests, reviews, and wishlists. Categories are many-to-many with products so products can be classified flexibly. Public available stock is the sum of `stock_on_hand - stock_reserved`; checkout reserves stock, and shipment decrements both values. `jan_code` currently contains a demo-only `JF2026-...` identifier, not a manufacturer JAN barcode.
 
 ```mermaid
 erDiagram
@@ -30,7 +30,11 @@ erDiagram
   CART ||--o{ CART_ITEM : contains
   ORDER ||--|{ ORDER_ITEM : contains
   ORDER ||--o{ ORDER_STATUS_HISTORY : records
-  ORDER ||--o{ PAYMENT : paid_by
+  ORDER ||--o| PAYMENT : paid_by
+  PAYMENT ||--o{ PAYMENT_EVENT : receives
+  ORDER ||--o{ STOCK_RESERVATION : reserves
+  PRODUCT_VARIANT ||--o{ STOCK_RESERVATION : reserved_as
+  ORDER ||--o| RETURN_REQUEST : may_have
   ORDER ||--o{ VOUCHER_REDEMPTION : applies
   VOUCHER ||--o{ VOUCHER_REDEMPTION : used_in
   CHAT_SESSION ||--o{ CHAT_MESSAGE : contains
@@ -164,7 +168,21 @@ erDiagram
     string method
     string status
     int amount_vnd
-    string idempotency_key UK
+    datetime expires_at
+  }
+  PAYMENT_EVENT {
+    uuid id PK
+    uuid payment_id FK
+    string event_id
+    string outcome
+    datetime received_at
+  }
+  STOCK_RESERVATION {
+    uuid id PK
+    uuid order_id FK
+    uuid variant_id FK
+    int quantity
+    string status
     datetime expires_at
   }
   VOUCHER {
@@ -208,6 +226,14 @@ erDiagram
     uuid id PK
     uuid user_id FK
     uuid product_id FK
+    datetime created_at
+  }
+  RETURN_REQUEST {
+    uuid id PK
+    uuid order_id FK
+    uuid user_id FK
+    string reason
+    string status
     datetime created_at
   }
   BANNER {

@@ -25,12 +25,59 @@ enum VoucherType {
 
 enum OrderStatus {
   SIMULATED
+  PENDING_PAYMENT
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  PAYMENT_FAILED
+  CANCELLED
+  EXPIRED
+  RETURN_REQUESTED
+  RETURNED
 }
 
 enum LoyaltyTransactionType {
   EARN
   REDEEM
+  RELEASE
   ADJUSTMENT
+}
+
+enum PaymentMethod {
+  MOCK_TRANSFER
+  MOCK_COD
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  EXPIRED
+}
+
+enum PaymentOutcome {
+  SUCCESS
+  FAILURE
+  CANCEL
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CONSUMED
+  RELEASED
+}
+
+enum ReturnStatus {
+  REQUESTED
+  COMPLETED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 model AppMetadata {
@@ -42,13 +89,13 @@ model AppMetadata {
 }
 
 model User {
-  id                 String              @id @default(cuid())
-  email              String              @unique @db.VarChar(254)
-  name               String              @db.VarChar(120)
-  passwordHash       String              @map("password_hash") @db.VarChar(100)
-  role               UserRole            @default(USER)
-  emailVerifiedAt    DateTime?           @map("email_verified_at") @db.Timestamptz(3)
-  disabledAt         DateTime?           @map("disabled_at") @db.Timestamptz(3)
+  id                 String               @id @default(cuid())
+  email              String               @unique @db.VarChar(254)
+  name               String               @db.VarChar(120)
+  passwordHash       String               @map("password_hash") @db.VarChar(100)
+  role               UserRole             @default(USER)
+  emailVerifiedAt    DateTime?            @map("email_verified_at") @db.Timestamptz(3)
+  disabledAt         DateTime?            @map("disabled_at") @db.Timestamptz(3)
   refreshSessions    RefreshSession[]
   authActionTokens   AuthActionToken[]
   addresses          Address[]
@@ -57,8 +104,12 @@ model User {
   orders             Order[]
   loyaltyAccount     LoyaltyAccount?
   voucherRedemptions VoucherRedemption[]
-  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  wishlistItems      WishlistItem[]
+  reviews            Review[]
+  orderStatusChanges OrderStatusHistory[] @relation("OrderStatusActor")
+  returnRequests     ReturnRequest[]
+  createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([role])
   @@map("users")
@@ -178,7 +229,7 @@ model Order {
   id                    String               @id @default(cuid())
   orderNumber           String               @unique @map("order_number") @db.VarChar(40)
   userId                String               @map("user_id")
-  status                OrderStatus          @default(SIMULATED)
+  status                OrderStatus          @default(PENDING_PAYMENT)
   recipientName         String               @map("recipient_name") @db.VarChar(120)
   phone                 String               @db.VarChar(20)
   streetAddress         String               @map("street_address") @db.VarChar(255)
@@ -198,31 +249,121 @@ model Order {
   totalVnd              Int                  @map("total_vnd")
   pointsEarned          Int                  @default(0) @map("points_earned")
   pointsRedeemed        Int                  @default(0) @map("points_redeemed")
+  paymentDeadlineAt     DateTime             @map("payment_deadline_at") @db.Timestamptz(3)
+  trackingNumber        String?              @map("tracking_number") @db.VarChar(40)
+  returnReason          String?              @map("return_reason") @db.VarChar(500)
+  returnRequestedAt     DateTime?            @map("return_requested_at") @db.Timestamptz(3)
+  deliveredAt           DateTime?            @map("delivered_at") @db.Timestamptz(3)
+  statusUpdatedAt       DateTime             @default(now()) @map("status_updated_at") @db.Timestamptz(3)
   user                  User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
   items                 OrderItem[]
   voucherRedemption     VoucherRedemption?
   loyaltyTransactions   LoyaltyTransaction[]
+  payment               Payment?
+  reservations          StockReservation[]
+  statusHistory         OrderStatusHistory[]
+  returnRequest         ReturnRequest?
   createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt             DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([userId, createdAt])
   @@map("orders")
 }
 
 model OrderItem {
-  id               String @id @default(cuid())
-  orderId          String @map("order_id")
-  productVariantId String @map("product_variant_id") @db.VarChar(30)
-  productSlug      String @map("product_slug") @db.VarChar(180)
-  productName      String @map("product_name") @db.VarChar(240)
-  variantName      String @map("variant_name") @db.VarChar(120)
-  sku              String @db.VarChar(80)
+  id               String  @id @default(cuid())
+  orderId          String  @map("order_id")
+  productVariantId String  @map("product_variant_id") @db.VarChar(30)
+  productSlug      String  @map("product_slug") @db.VarChar(180)
+  productName      String  @map("product_name") @db.VarChar(240)
+  variantName      String  @map("variant_name") @db.VarChar(120)
+  sku              String  @db.VarChar(80)
   quantity         Int
-  unitPriceVnd     Int    @map("unit_price_vnd")
-  weightGrams      Int    @map("weight_grams")
-  order            Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  unitPriceVnd     Int     @map("unit_price_vnd")
+  weightGrams      Int     @map("weight_grams")
+  order            Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  review           Review?
 
   @@index([orderId])
   @@map("order_items")
+}
+
+model Payment {
+  id        String         @id @default(cuid())
+  orderId   String         @unique @map("order_id")
+  method    PaymentMethod
+  status    PaymentStatus  @default(PENDING)
+  amountVnd Int            @map("amount_vnd")
+  expiresAt DateTime       @map("expires_at") @db.Timestamptz(3)
+  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  events    PaymentEvent[]
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, expiresAt])
+  @@map("payments")
+}
+
+model PaymentEvent {
+  id         String         @id @default(cuid())
+  paymentId  String         @map("payment_id")
+  eventId    String         @map("event_id") @db.VarChar(100)
+  outcome    PaymentOutcome
+  payment    Payment        @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  receivedAt DateTime       @default(now()) @map("received_at") @db.Timestamptz(3)
+
+  @@unique([paymentId, eventId])
+  @@index([receivedAt])
+  @@map("payment_events")
+}
+
+model StockReservation {
+  id        String            @id @default(cuid())
+  orderId   String            @map("order_id")
+  variantId String            @map("variant_id")
+  quantity  Int
+  status    ReservationStatus @default(ACTIVE)
+  expiresAt DateTime          @map("expires_at") @db.Timestamptz(3)
+  order     Order             @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant   ProductVariant    @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([orderId, variantId])
+  @@index([status, expiresAt])
+  @@map("stock_reservations")
+}
+
+model OrderStatusHistory {
+  id          String       @id @default(cuid())
+  orderId     String       @map("order_id")
+  actorUserId String?      @map("actor_user_id")
+  fromStatus  OrderStatus? @map("from_status")
+  toStatus    OrderStatus  @map("to_status")
+  reason      String?      @db.VarChar(500)
+  notifiedAt  DateTime?    @map("notified_at") @db.Timestamptz(3)
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  actorUser   User?        @relation("OrderStatusActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([orderId, createdAt])
+  @@map("order_status_history")
+}
+
+model ReturnRequest {
+  id          String       @id @default(cuid())
+  orderId     String       @unique @map("order_id")
+  userId      String       @map("user_id")
+  reason      String       @db.VarChar(500)
+  status      ReturnStatus @default(REQUESTED)
+  completedAt DateTime?    @map("completed_at") @db.Timestamptz(3)
+  order       Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, createdAt])
+  @@map("return_requests")
 }
 
 model VoucherRedemption {
@@ -322,6 +463,8 @@ model Product {
   categories         ProductCategory[]
   variants           ProductVariant[]
   images             ProductImage[]
+  reviews            Review[]
+  wishlistItems      WishlistItem[]
   createdAt          DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt          DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -346,19 +489,53 @@ model ProductCategory {
 }
 
 model ProductVariant {
-  id          String     @id @default(cuid())
-  productId   String     @map("product_id")
-  sku         String     @unique @db.VarChar(80)
-  name        String     @db.VarChar(120)
-  stockOnHand Int        @default(0) @map("stock_on_hand")
-  weightGrams Int        @default(1000) @map("weight_grams")
-  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
-  cartItems   CartItem[]
-  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id            String             @id @default(cuid())
+  productId     String             @map("product_id")
+  sku           String             @unique @db.VarChar(80)
+  name          String             @db.VarChar(120)
+  stockOnHand   Int                @default(0) @map("stock_on_hand")
+  stockReserved Int                @default(0) @map("stock_reserved")
+  weightGrams   Int                @default(1000) @map("weight_grams")
+  product       Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems     CartItem[]
+  reservations  StockReservation[]
+  createdAt     DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([productId])
   @@map("product_variants")
+}
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  productId String   @map("product_id")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([userId, productId])
+  @@index([userId, createdAt])
+  @@map("wishlist_items")
+}
+
+model Review {
+  id          String       @id @default(cuid())
+  userId      String       @map("user_id")
+  productId   String       @map("product_id")
+  orderItemId String       @unique @map("order_item_id")
+  rating      Int
+  body        String       @db.VarChar(2000)
+  status      ReviewStatus @default(PENDING)
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItem   OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime     @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([productId, status, createdAt])
+  @@index([userId, createdAt])
+  @@map("reviews")
 }
 
 model ProductImage {

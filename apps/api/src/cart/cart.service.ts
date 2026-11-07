@@ -58,7 +58,7 @@ export class CartService {
             item.variant,
             item.quantity,
             currentPrice,
-            item.variant.stockOnHand,
+            item.variant.stockOnHand - item.variant.stockReserved,
             item.variant.product.publishedAt !== null,
           );
         }),
@@ -88,7 +88,7 @@ export class CartService {
         where: { cartId_variantId: { cartId: cart.id, variantId } },
       });
       const nextQuantity = (existing?.quantity ?? 0) + quantity;
-      this.assertQuantity(nextQuantity, variant.stockOnHand);
+      this.assertQuantity(nextQuantity, variant.stockOnHand - variant.stockReserved);
       if (
         !existing &&
         (await this.prisma.cartItem.count({ where: { cartId: cart.id } })) >= MAX_CART_LINES
@@ -109,7 +109,7 @@ export class CartService {
       const state = await this.readGuestCart(guestId);
       const existing = state.items.find((item) => item.variantId === variantId);
       const nextQuantity = (existing?.quantity ?? 0) + quantity;
-      this.assertQuantity(nextQuantity, variant.stockOnHand);
+      this.assertQuantity(nextQuantity, variant.stockOnHand - variant.stockReserved);
       if (!existing && state.items.length >= MAX_CART_LINES) {
         throw new BadRequestException('Giỏ hàng đã đạt số sản phẩm tối đa.');
       }
@@ -135,7 +135,7 @@ export class CartService {
     quantity: number,
   ) {
     const variant = await this.getAvailableVariant(variantId);
-    this.assertQuantity(quantity, variant.stockOnHand);
+    this.assertQuantity(quantity, variant.stockOnHand - variant.stockReserved);
     if (userId) {
       const cart = await this.prisma.cart.findUnique({ where: { userId } });
       if (!cart) throw new NotFoundException('Không tìm thấy sản phẩm trong giỏ hàng.');
@@ -244,7 +244,9 @@ export class CartService {
       include: { ...variantInclude },
     });
     if (!variant) throw new NotFoundException('Không tìm thấy sản phẩm.');
-    if (variant.stockOnHand < 1) throw new ConflictException('Sản phẩm hiện đã hết hàng.');
+    if (variant.stockOnHand - variant.stockReserved < 1) {
+      throw new ConflictException('Sản phẩm hiện đã hết hàng.');
+    }
     return variant;
   }
 
@@ -278,7 +280,7 @@ export class CartService {
           variant,
           item.quantity,
           item.unitPriceVnd,
-          variant.stockOnHand,
+          variant.stockOnHand - variant.stockReserved,
           variant.product.publishedAt !== null,
         ),
       );

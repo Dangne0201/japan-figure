@@ -131,6 +131,12 @@ export default function AccountProfile() {
         <Link className="font-semibold text-brand-plum underline" href="/cart">
           Giỏ hàng
         </Link>
+        <Link className="font-semibold text-brand-plum underline" href="/account/orders">
+          Đơn hàng
+        </Link>
+        <Link className="font-semibold text-brand-plum underline" href="/account/wishlist">
+          Yêu thích
+        </Link>
       </div>
       <form className="space-y-5" onSubmit={update}>
         <label className="filter-label">
