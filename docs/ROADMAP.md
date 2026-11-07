@@ -36,7 +36,7 @@ Work is phase-based. The storefront and core buying experience take priority; ch
 
 - **Part 1 complete:** role-protected `/admin` dashboard and product/stock management; WebP uploads validate type/size and use a local volume; admin credentials are provisioned only from environment configuration.
 - **Part 2 complete:** searchable order operations and return moderation; voucher and time-bounded storefront banner management; review moderation; customer disable/enable; and paginated audit-log browsing. Administrative mutations are audit-logged transactionally.
-- Part 2 passed Compose/runtime checks, full API/web tests, lint, formatting, and production builds; publish it by the agreed branch/fast-forward-merge workflow.
+- Part 2 passed Compose/runtime checks, full API/web tests, lint, formatting, and production builds; it is published and fast-forward merged to `main`.
 - Authorization tests prove unauthenticated requests are denied and only admins can use the dashboard and operation endpoints.
 
 ## Phase 5a — Chatbot knowledge and retrieval

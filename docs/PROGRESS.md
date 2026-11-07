@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 4 — Admin Part 1 is complete and merged to `main` as `f79e01c`. Part 2 is implemented and verified on `phase/4-admin-operations`; it is ready to publish and merge.
+Phase 4 — Admin Part 1 is complete and merged to `main` as `f79e01c`. Part 2 is complete and merged from `phase/4-admin-operations`; Phase 4 is ready for owner review.
 
 ## Completed
 
@@ -57,4 +57,4 @@ Phase 4 — Admin Part 1 is complete and merged to `main` as `f79e01c`. Part 2 i
 
 ## Next step
 
-Publish and fast-forward merge the verified Phase 4 Part 2 branch, then stop for owner approval before any further phase work. The owner should complete the manual phone-width visual checklist.
+Wait for owner review and approval before starting Phase 5. The owner should complete the manual phone-width visual checklist.
