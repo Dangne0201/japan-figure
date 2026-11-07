@@ -22,12 +22,13 @@ Work is phase-based. The storefront and core buying experience take priority; ch
 - Registration/login/logout, refresh-token rotation, email verification/reset via Mailpit, roles, profile, and address book work.
 - Guest cart merges on login and checks stock; shipping is a clearly labeled simulation.
 - Voucher and loyalty rules are implemented with integer VND pricing and documented rounding.
-- Unit and e2e tests cover pricing, shipping, voucher behavior, auth, cart, and authorization.
+- A minimum simulated checkout records an order and applies stock, voucher-usage, and point changes atomically; it never charges money or calls a carrier.
+- Unit tests cover pricing, shipping, voucher behavior, auth, cart, and checkout conflict handling.
 
 ## Phase 3b — Checkout and orders
 
 - Clearly labeled fake payment methods support success/failure/cancel and idempotent callbacks; no real payment or card data processing.
-- Orders, status history, reservations, expiry/release, simulated worker progression, fake email, tracking, invoice, cancel/return, wishlist, and verified-buyer reviews work.
+- Expand the Phase 3a simulated order into the full order lifecycle: status history, reservations, expiry/release, worker progression, fake email, tracking, invoice, cancel/return, wishlist, and verified-buyer reviews.
 - PWA behavior is implemented with honest HTTPS requirements for LAN installation.
 - State-machine/payment tests and a full purchase-flow e2e test pass.
 

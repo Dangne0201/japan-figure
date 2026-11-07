@@ -13,7 +13,7 @@ const productInclude = {
   brand: true,
   series: true,
   categories: { include: { category: true } },
-  variants: { select: { stockOnHand: true, sku: true, name: true } },
+  variants: { select: { id: true, stockOnHand: true, sku: true, name: true, weightGrams: true } },
   images: { orderBy: { position: 'asc' as const } },
 };
 
@@ -58,6 +58,13 @@ export interface ProductCard {
   series: { slug: string; name: string };
   categories: Array<{ slug: string; name: string }>;
   images: Array<{ url: string; altText: string }>;
+  variants: Array<{
+    id: string;
+    sku: string;
+    name: string;
+    stockOnHand: number;
+    weightGrams: number;
+  }>;
 }
 
 @Injectable()
@@ -267,5 +274,6 @@ function toProductCard(product: CatalogProduct): ProductCard {
     series: product.series,
     categories: product.categories.map(({ category }) => category),
     images: product.images.map(({ url, altText }) => ({ url, altText })),
+    variants: product.variants,
   };
 }

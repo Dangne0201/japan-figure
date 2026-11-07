@@ -64,7 +64,12 @@ services:
       API_PORT: 3001
       DATABASE_URL: postgresql://${POSTGRES_USER:-japan_figure}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/${POSTGRES_DB:-japan_figure}
       REDIS_URL: redis://redis:6379
-      WEB_ORIGIN: http://localhost:${APP_PORT:-8081}
+      WEB_ORIGIN: ${SITE_URL:-http://localhost:${APP_PORT:-8081}}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET in .env}
+      AUTH_ACCESS_TOKEN_TTL_SECONDS: ${AUTH_ACCESS_TOKEN_TTL_SECONDS:-900}
+      AUTH_REFRESH_TOKEN_TTL_DAYS: ${AUTH_REFRESH_TOKEN_TTL_DAYS:-30}
+      AUTH_ACTION_TOKEN_TTL_HOURS: ${AUTH_ACTION_TOKEN_TTL_HOURS:-24}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       MAIL_FROM: ${MAIL_FROM:-no-reply@japan-figure.local}
@@ -105,7 +110,8 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgresql://${POSTGRES_USER:-japan_figure}:${POSTGRES_PASSWORD:-change-me-local-only}@postgres:5432/${POSTGRES_DB:-japan_figure}
       REDIS_URL: redis://redis:6379
-      WEB_ORIGIN: http://localhost:${APP_PORT:-8081}
+      WEB_ORIGIN: ${SITE_URL:-http://localhost:${APP_PORT:-8081}}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET in .env}
       SMTP_HOST: mailpit
       SMTP_PORT: 1025
       MAIL_FROM: ${MAIL_FROM:-no-reply@japan-figure.local}

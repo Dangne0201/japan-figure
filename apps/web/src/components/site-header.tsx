@@ -34,8 +34,16 @@ export default function SiteHeader({ initialQuery = '' }: { initialQuery?: strin
             Nổi bật
           </Link>
         </nav>
-        <div className="order-2 w-[min(100%,22rem)] sm:order-3">
-          <SearchBar key={initialQuery} initialQuery={initialQuery} />
+        <div className="order-2 flex w-full items-center gap-3 sm:order-3 sm:w-auto">
+          <div className="min-w-0 flex-1">
+            <SearchBar key={initialQuery} initialQuery={initialQuery} />
+          </div>
+          <Link className="whitespace-nowrap text-sm font-semibold text-brand-plum" href="/cart">
+            Giỏ hàng
+          </Link>
+          <Link className="whitespace-nowrap text-sm font-semibold text-brand-plum" href="/login">
+            Tài khoản
+          </Link>
         </div>
       </div>
       <div className="border-t border-brand-plum/5 bg-white/60 py-1 text-center text-[11px] text-brand-ink/60">

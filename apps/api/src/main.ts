@@ -12,6 +12,7 @@ async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
 
   app.useLogger(new Logger());
+  app.getHttpAdapter().getInstance().set('trust proxy', 1);
   app.use(helmet());
   app.setGlobalPrefix('api');
   app.enableCors({ origin: config.WEB_ORIGIN, credentials: true });
@@ -28,6 +29,7 @@ async function bootstrap(): Promise<void> {
     .setTitle('Japan Figure API')
     .setDescription('REST API for the Japan Figure learning project.')
     .setVersion('0.1.0')
+    .addCookieAuth('jf_access', { type: 'apiKey', in: 'cookie' })
     .build();
   SwaggerModule.setup('api/docs', app, SwaggerModule.createDocument(app, swaggerConfig));
 

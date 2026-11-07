@@ -7,12 +7,264 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum AuthActionType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum VoucherType {
+  PERCENT
+  FIXED
+  FREE_SHIPPING
+}
+
+enum OrderStatus {
+  SIMULATED
+}
+
+enum LoyaltyTransactionType {
+  EARN
+  REDEEM
+  ADJUSTMENT
+}
+
 model AppMetadata {
   key       String   @id @db.VarChar(100)
   value     String   @db.Text
   updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@map("app_metadata")
+}
+
+model User {
+  id                 String              @id @default(cuid())
+  email              String              @unique @db.VarChar(254)
+  name               String              @db.VarChar(120)
+  passwordHash       String              @map("password_hash") @db.VarChar(100)
+  role               UserRole            @default(USER)
+  emailVerifiedAt    DateTime?           @map("email_verified_at") @db.Timestamptz(3)
+  disabledAt         DateTime?           @map("disabled_at") @db.Timestamptz(3)
+  refreshSessions    RefreshSession[]
+  authActionTokens   AuthActionToken[]
+  addresses          Address[]
+  cart               Cart?
+  cartMerges         CartMergeReceipt[]
+  orders             Order[]
+  loyaltyAccount     LoyaltyAccount?
+  voucherRedemptions VoucherRedemption[]
+  createdAt          DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt          DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([role])
+  @@map("users")
+}
+
+model RefreshSession {
+  id        String    @id @default(cuid())
+  userId    String    @map("user_id")
+  familyId  String    @map("family_id") @db.VarChar(30)
+  tokenHash String    @unique @map("token_hash") @db.Char(64)
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(3)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(3)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId, revokedAt])
+  @@index([familyId, revokedAt])
+  @@index([expiresAt])
+  @@map("refresh_sessions")
+}
+
+model AuthActionToken {
+  id         String         @id @default(cuid())
+  userId     String         @map("user_id")
+  type       AuthActionType
+  tokenHash  String         @unique @map("token_hash") @db.Char(64)
+  expiresAt  DateTime       @map("expires_at") @db.Timestamptz(3)
+  consumedAt DateTime?      @map("consumed_at") @db.Timestamptz(3)
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId, type, consumedAt])
+  @@index([expiresAt])
+  @@map("auth_action_tokens")
+}
+
+model Address {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  label         String   @db.VarChar(60)
+  recipientName String   @map("recipient_name") @db.VarChar(120)
+  phone         String   @db.VarChar(20)
+  streetAddress String   @map("street_address") @db.VarChar(255)
+  provinceCode  String   @map("province_code") @db.VarChar(2)
+  provinceName  String   @map("province_name") @db.VarChar(120)
+  communeCode   String   @map("commune_code") @db.VarChar(5)
+  communeName   String   @map("commune_name") @db.VarChar(120)
+  communeType   String   @map("commune_type") @db.VarChar(30)
+  isDefault     Boolean  @default(false) @map("is_default")
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([userId, createdAt])
+  @@map("addresses")
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique @map("user_id")
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("carts")
+}
+
+model CartItem {
+  id           String         @id @default(cuid())
+  cartId       String         @map("cart_id")
+  variantId    String         @map("variant_id")
+  quantity     Int
+  unitPriceVnd Int            @map("unit_price_vnd")
+  cart         Cart           @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  variant      ProductVariant @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  createdAt    DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime       @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@unique([cartId, variantId])
+  @@index([variantId])
+  @@map("cart_items")
+}
+
+model CartMergeReceipt {
+  id          String   @id @default(cuid())
+  guestIdHash String   @unique @map("guest_id_hash") @db.Char(64)
+  userId      String   @map("user_id")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId, createdAt])
+  @@map("cart_merge_receipts")
+}
+
+model Voucher {
+  id             String              @id @default(cuid())
+  code           String              @unique @db.VarChar(40)
+  type           VoucherType
+  value          Int
+  minSubtotalVnd Int                 @default(0) @map("min_subtotal_vnd")
+  maxDiscountVnd Int?                @map("max_discount_vnd")
+  startsAt       DateTime            @map("starts_at") @db.Timestamptz(3)
+  expiresAt      DateTime            @map("expires_at") @db.Timestamptz(3)
+  totalLimit     Int?                @map("total_limit")
+  perUserLimit   Int?                @map("per_user_limit")
+  isStackable    Boolean             @default(false) @map("is_stackable")
+  redemptions    VoucherRedemption[]
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([startsAt, expiresAt])
+  @@map("vouchers")
+}
+
+model Order {
+  id                    String               @id @default(cuid())
+  orderNumber           String               @unique @map("order_number") @db.VarChar(40)
+  userId                String               @map("user_id")
+  status                OrderStatus          @default(SIMULATED)
+  recipientName         String               @map("recipient_name") @db.VarChar(120)
+  phone                 String               @db.VarChar(20)
+  streetAddress         String               @map("street_address") @db.VarChar(255)
+  provinceCode          String               @map("province_code") @db.VarChar(2)
+  provinceName          String               @map("province_name") @db.VarChar(120)
+  communeCode           String               @map("commune_code") @db.VarChar(5)
+  communeName           String               @map("commune_name") @db.VarChar(120)
+  communeType           String               @map("commune_type") @db.VarChar(30)
+  carrierId             String               @map("carrier_id") @db.VarChar(40)
+  carrierName           String               @map("carrier_name") @db.VarChar(80)
+  estimatedDeliveryFrom DateTime             @map("estimated_delivery_from") @db.Date
+  estimatedDeliveryTo   DateTime             @map("estimated_delivery_to") @db.Date
+  subtotalVnd           Int                  @map("subtotal_vnd")
+  voucherDiscountVnd    Int                  @default(0) @map("voucher_discount_vnd")
+  loyaltyDiscountVnd    Int                  @default(0) @map("loyalty_discount_vnd")
+  shippingFeeVnd        Int                  @map("shipping_fee_vnd")
+  totalVnd              Int                  @map("total_vnd")
+  pointsEarned          Int                  @default(0) @map("points_earned")
+  pointsRedeemed        Int                  @default(0) @map("points_redeemed")
+  user                  User                 @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items                 OrderItem[]
+  voucherRedemption     VoucherRedemption?
+  loyaltyTransactions   LoyaltyTransaction[]
+  createdAt             DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([userId, createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id               String @id @default(cuid())
+  orderId          String @map("order_id")
+  productVariantId String @map("product_variant_id") @db.VarChar(30)
+  productSlug      String @map("product_slug") @db.VarChar(180)
+  productName      String @map("product_name") @db.VarChar(240)
+  variantName      String @map("variant_name") @db.VarChar(120)
+  sku              String @db.VarChar(80)
+  quantity         Int
+  unitPriceVnd     Int    @map("unit_price_vnd")
+  weightGrams      Int    @map("weight_grams")
+  order            Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+model VoucherRedemption {
+  id        String   @id @default(cuid())
+  voucherId String   @map("voucher_id")
+  userId    String   @map("user_id")
+  orderId   String   @unique @map("order_id")
+  voucher   Voucher  @relation(fields: [voucherId], references: [id], onDelete: Restrict)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([voucherId, createdAt])
+  @@index([userId, voucherId])
+  @@map("voucher_redemptions")
+}
+
+model LoyaltyAccount {
+  id            String               @id @default(cuid())
+  userId        String               @unique @map("user_id")
+  pointsBalance Int                  @default(0) @map("points_balance")
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  LoyaltyTransaction[]
+  createdAt     DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("loyalty_accounts")
+}
+
+model LoyaltyTransaction {
+  id               String                 @id @default(cuid())
+  loyaltyAccountId String                 @map("loyalty_account_id")
+  orderId          String?                @map("order_id")
+  type             LoyaltyTransactionType
+  pointsDelta      Int                    @map("points_delta")
+  loyaltyAccount   LoyaltyAccount         @relation(fields: [loyaltyAccountId], references: [id], onDelete: Cascade)
+  order            Order?                 @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt        DateTime               @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@unique([orderId, type])
+  @@index([loyaltyAccountId, createdAt])
+  @@map("loyalty_transactions")
 }
 
 model Brand {
@@ -94,14 +346,16 @@ model ProductCategory {
 }
 
 model ProductVariant {
-  id          String   @id @default(cuid())
-  productId   String   @map("product_id")
-  sku         String   @unique @db.VarChar(80)
-  name        String   @db.VarChar(120)
-  stockOnHand Int      @default(0) @map("stock_on_hand")
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+  id          String     @id @default(cuid())
+  productId   String     @map("product_id")
+  sku         String     @unique @db.VarChar(80)
+  name        String     @db.VarChar(120)
+  stockOnHand Int        @default(0) @map("stock_on_hand")
+  weightGrams Int        @default(1000) @map("weight_grams")
+  product     Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems   CartItem[]
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@index([productId])
   @@map("product_variants")

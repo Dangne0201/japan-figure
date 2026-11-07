@@ -19,6 +19,13 @@ export interface ProductCard {
   series: { slug: string; name: string };
   categories: Array<{ slug: string; name: string }>;
   images: Array<{ url: string; altText: string }>;
+  variants: Array<{
+    id: string;
+    sku: string;
+    name: string;
+    stockOnHand: number;
+    weightGrams: number;
+  }>;
 }
 
 export interface CatalogFacets {

@@ -6,6 +6,22 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   REDIS_URL: z.string().url(),
   WEB_ORIGIN: z.string().url().default('http://localhost:3000'),
+  JWT_ACCESS_SECRET: z
+    .string()
+    .min(32)
+    .refine((value) => value !== 'change-me-to-a-long-random-secret', {
+      message: 'Replace the example JWT secret with a random value.',
+    }),
+  AUTH_ACCESS_TOKEN_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
+  AUTH_REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().min(1).max(90).default(30),
+  AUTH_ACTION_TOKEN_TTL_HOURS: z.coerce.number().int().min(1).max(48).default(24),
+  COOKIE_SECURE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((value) => value === 'true'),
+  SMTP_HOST: z.string().default('mailpit'),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(1025),
+  MAIL_FROM: z.string().email().default('no-reply@japan-figure.local'),
   OLLAMA_BASE_URL: z.string().url().default('http://host.docker.internal:11434'),
   OLLAMA_CHAT_MODEL: z.string().default('qwen2.5:3b-instruct'),
   OLLAMA_CHAT_FALLBACK_MODEL: z.string().default('qwen2.5:1.5b-instruct'),

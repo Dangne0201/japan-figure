@@ -6,6 +6,7 @@ import ProductCard from '../../../components/product-card';
 import SiteFooter from '../../../components/site-footer';
 import SiteHeader from '../../../components/site-header';
 import { formatVnd, getProduct, productImageUrl } from '../../../lib/catalog';
+import AddToCartButton from '../../../components/add-to-cart-button';
 
 export const dynamic = 'force-dynamic';
 
@@ -105,6 +106,12 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               )}
             </p>
             <p className="mt-5 leading-7 text-brand-ink/75">{product.description}</p>
+            {!product.isPreorder ? (
+              <AddToCartButton
+                disabled={product.stock === 0}
+                variantId={product.variants.find((variant) => variant.stockOnHand > 0)?.id}
+              />
+            ) : null}
             <div className="mt-6 flex flex-wrap gap-2">
               <span className="badge">{category}</span>
               {product.isPreorder && <span className="badge">Mô phỏng: đặt trước</span>}

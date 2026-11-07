@@ -22,6 +22,50 @@ interface SeedProduct {
 }
 
 async function seed(): Promise<void> {
+  const voucherDefaults = [
+    {
+      code: 'FIGURE10',
+      type: 'PERCENT' as const,
+      value: 10,
+      minSubtotalVnd: 500_000,
+      maxDiscountVnd: 200_000,
+      startsAt: new Date('2026-01-01T00:00:00.000Z'),
+      expiresAt: new Date('2027-01-01T00:00:00.000Z'),
+      totalLimit: 500,
+      perUserLimit: 1,
+      isStackable: true,
+    },
+    {
+      code: 'FREESHIP',
+      type: 'FREE_SHIPPING' as const,
+      value: 0,
+      minSubtotalVnd: 300_000,
+      maxDiscountVnd: null,
+      startsAt: new Date('2026-01-01T00:00:00.000Z'),
+      expiresAt: new Date('2027-01-01T00:00:00.000Z'),
+      totalLimit: 500,
+      perUserLimit: 1,
+      isStackable: true,
+    },
+  ];
+  for (const voucher of voucherDefaults) {
+    await prisma.voucher.upsert({
+      where: { code: voucher.code },
+      create: voucher,
+      update: {
+        type: voucher.type,
+        value: voucher.value,
+        minSubtotalVnd: voucher.minSubtotalVnd,
+        maxDiscountVnd: voucher.maxDiscountVnd,
+        startsAt: voucher.startsAt,
+        expiresAt: voucher.expiresAt,
+        totalLimit: voucher.totalLimit,
+        perUserLimit: voucher.perUserLimit,
+        isStackable: voucher.isStackable,
+      },
+    });
+  }
+
   for (const brand of catalog.brands) {
     await prisma.brand.upsert({
       where: { slug: brand.slug },
@@ -109,8 +153,9 @@ async function seed(): Promise<void> {
         sku: `JF-${product.slug.toUpperCase()}`,
         name: 'Phiên bản tiêu chuẩn',
         stockOnHand: product.stock,
+        weightGrams: 1000,
       },
-      update: { productId: saved.id, stockOnHand: product.stock },
+      update: { productId: saved.id, stockOnHand: product.stock, weightGrams: 1000 },
     });
 
     await prisma.productImage.upsert({
