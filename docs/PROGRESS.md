@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 5a — Chatbot knowledge and retrieval is complete and verified on `phase/5a-chatbot-knowledge`. Phase 4 is complete and merged to `main`.
+Phase 5a — Chatbot knowledge and retrieval is complete, verified, and merged to `main` from `phase/5a-chatbot-knowledge`. Phase 4 is also complete and merged.
 
 ## Completed
 
@@ -69,4 +69,4 @@ Phase 5a — Chatbot knowledge and retrieval is complete and verified on `phase/
 
 ## Next step
 
-Publish and fast-forward merge the verified `phase/5a-chatbot-knowledge` branch, then stop for owner review. Do not start Phase 5b until the owner explicitly asks.
+Stop for owner review. Do not start Phase 5b until the owner explicitly asks.
