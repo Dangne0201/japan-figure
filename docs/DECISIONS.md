@@ -46,3 +46,8 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 - Set Japan Figure's default host web port to `8081` (still configurable with `APP_PORT`).
 - Reason: an existing stopped `booknest-app-1` container is configured to publish `127.0.0.1:8080`; running both projects simultaneously would conflict on port `8080`. No other active listener was using the new port during verification.
 - Nginx continues listening on container port `8080`; only the host-facing port changes.
+
+## 2026-11-07 — Branch review and publishing workflow
+
+- For phase work, use a dedicated branch, perform self-review and verification, then merge into `main` only after checks pass. Do not create a pull request unless the owner asks for one.
+- Publish branches and `main` through the owner's SourceTree setup. Do not start the next phase until the owner explicitly approves it.
