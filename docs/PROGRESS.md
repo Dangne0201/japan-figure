@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 6 Part 2 engineering and local verification are complete. The combined Phase 5b/6 changes are committed as `3fd2a6e` and pushed to `origin/phase/6-polish`; pull request creation is pending GitHub authentication.
+Phase 6 Part 2 engineering and local verification are complete. The combined Phase 5b/6 changes are committed and published directly to `main` as `fd5e1e2`.
 
 ## Completed
 
@@ -94,8 +94,8 @@ Phase 6 Part 2 engineering and local verification are complete. The combined Pha
 - The repository does not provision default admin credentials. The owner must set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the ignored `.env` and run `docker compose --profile tools run --rm seed`.
 - Runtime language checks cover only a small number of grounded care-policy questions; evaluate a representative Vietnamese FAQ set before relying on general chatbot answers. The retrieval harness does not score answer quality or prove resistance to prompt injection.
 - Lighthouse was not run and no phone screenshot was captured. A historical chatbot answer contains one foreign word; it predates the updated prompt, so re-test with a fresh question.
-- The project branch is pushed, but `main` has not changed. GitHub CLI and the browser are not authenticated, so a PR cannot be opened in this session. Do not merge or tag until the PR is reviewed and CI passes.
+- The verified work was fast-forwarded directly to `main` at `fd5e1e2` without a PR or force-push. Check CI and repository status after publication.
 
 ## Next step
 
-Next: authenticate GitHub CLI and open a PR from `phase/6-polish` to `main`; review the combined Phase 5b/Phase 6 scope and CI before merge. Separately, complete the owner phone check, optional Lighthouse run, and (only against disposable data) reset-script rehearsal.
+Next: review the published `main` build/CI status. Separately, complete the owner phone check, optional Lighthouse run, and (only against disposable data) reset-script rehearsal.
