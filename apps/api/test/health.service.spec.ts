@@ -11,7 +11,7 @@ describe('HealthService', () => {
     NODE_ENV: 'test',
     API_PORT: 3001,
     DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
-    REDIS_URL: 'redis://localhost:6379',
+    REDIS_URL: 'redis://127.0.0.1:0',
     WEB_ORIGIN: 'http://localhost:3000',
     JWT_ACCESS_SECRET: 'test-secret-that-is-long-enough-for-jwt-signing',
     AUTH_ACCESS_TOKEN_TTL_SECONDS: 900,
