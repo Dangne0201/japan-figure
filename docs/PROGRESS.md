@@ -10,7 +10,7 @@ Phase 6 Part 2 engineering is complete. The base Phase 5b/6 work is recorded at 
 - No copyrighted images or transactions are added. Local supplemental images remain ignored by Git.
 - Web tests (16/16), API tests (24 suites / 93 tests), API and web lint, and API/web production builds pass. Prettier passes for all changed files; repository-wide format check still flags the untouched `apps/web/test/pwa.test.mjs`.
 - Recreated the development Compose application services and verified they are healthy; `/api/health`, `/help`, and `/products` return 200. Browser checks at mobile and desktop widths verified navigation visibility, no horizontal overflow, keyboard access, quantity adjustment, gallery zoom/Escape, and buy-now routing to checkout/login.
-- Commit and push to `main` are pending.
+- Storefront UX changes were committed as `efc5c71` and pushed to `origin/main`.
 
 ## Completed
 
