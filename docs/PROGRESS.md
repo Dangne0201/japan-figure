@@ -10,7 +10,7 @@ Phase 6 Part 2 engineering is complete. The base Phase 5b/6 work is recorded at 
 - Added entry points from the shared desktop/mobile navigation and footer and made product taxonomy badges link to matching catalog filters.
 - Kept copy, layout, and graphic treatment original to Japan Figure; all counts come from published catalog data, with no fabricated retail services or real transactions.
 - Verified web/API tests, lint, formatting, production builds, Compose health, and browser behavior for catalog discovery and product navigation.
-- Changes remain uncommitted and unpublished pending owner review.
+- Published on `main` as `0223553` (`feat(catalog): improve collection discovery UX`).
 
 ## Storefront UX follow-up (complete)
 
@@ -27,7 +27,7 @@ Phase 6 Part 2 engineering is complete. The base Phase 5b/6 work is recorded at 
 - Kept prices, deposits, stock, and release dates labeled as simulated; no real preorder or payment action was introduced.
 - Verified all tests (API: 24 suites / 95 tests; web: 18 tests), both workspace lint checks, Prettier on changed files, and production builds.
 - Recreated development Compose services; verified health, facet/release-year API responses, blank-filter API requests, mobile filtering/sorting/chip removal, desktop filters, approved-review labels, and preorder breakdown in the browser.
-- Changes remain uncommitted and unpublished pending owner review.
+- These catalog UX changes were included in `0223553` and published to `origin/main`.
 
 ## Completed
 
