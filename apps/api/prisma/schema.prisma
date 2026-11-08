@@ -1,10 +1,14 @@
 generator client {
-  provider = "prisma-client-js"
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  engineType             = "client"
+  runtime                = "nodejs"
+  moduleFormat           = "cjs"
+  generatedFileExtension = "ts"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -86,6 +90,16 @@ enum KnowledgeSourceType {
   PRODUCT
 }
 
+enum ChatMessageRole {
+  USER
+  ASSISTANT
+}
+
+enum ChatFeedbackRating {
+  HELPFUL
+  NOT_HELPFUL
+}
+
 model AppMetadata {
   key       String   @id @db.VarChar(100)
   value     String   @db.Text
@@ -116,6 +130,7 @@ model User {
   returnRequests     ReturnRequest[]
   adminAuditLogs     AdminAuditLog[]      @relation("AdminAuditActor")
   banners            Banner[]
+  chatConversations  ChatConversation[]
   createdAt          DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
   updatedAt          DateTime             @updatedAt @map("updated_at") @db.Timestamptz(3)
 
@@ -506,26 +521,54 @@ model Product {
 }
 
 model KnowledgeChunk {
-  id                String              @id @default(cuid())
-  sourceType        KnowledgeSourceType @map("source_type")
-  sourceId          String              @map("source_id") @db.VarChar(240)
-  sourceTitle       String              @map("source_title") @db.VarChar(300)
-  sourcePath        String?             @map("source_path") @db.VarChar(500)
-  chunkIndex        Int                 @map("chunk_index")
-  content           String              @db.Text
-  normalizedContent String              @map("normalized_content") @db.Text
-  contentHash       String              @map("content_hash") @db.Char(64)
+  id                String                       @id @default(cuid())
+  sourceType        KnowledgeSourceType          @map("source_type")
+  sourceId          String                       @map("source_id") @db.VarChar(240)
+  sourceTitle       String                       @map("source_title") @db.VarChar(300)
+  sourcePath        String?                      @map("source_path") @db.VarChar(500)
+  chunkIndex        Int                          @map("chunk_index")
+  content           String                       @db.Text
+  normalizedContent String                       @map("normalized_content") @db.Text
+  contentHash       String                       @map("content_hash") @db.Char(64)
   metadata          Json
   embedding         Unsupported("vector(1024)")?
-  productId         String?             @map("product_id")
-  product           Product?            @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt         DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
-  updatedAt         DateTime            @updatedAt @map("updated_at") @db.Timestamptz(3)
+  productId         String?                      @map("product_id")
+  product           Product?                     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt         DateTime                     @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                     @updatedAt @map("updated_at") @db.Timestamptz(3)
 
   @@unique([sourceType, sourceId, chunkIndex])
   @@index([sourceType, sourceId])
   @@index([productId])
   @@map("knowledge_chunks")
+}
+
+model ChatConversation {
+  id        String        @id @default(cuid())
+  userId    String        @map("user_id")
+  title     String        @default("Cuộc trò chuyện mới") @db.VarChar(120)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  ChatMessage[]
+  createdAt DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([userId, updatedAt])
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String              @id @default(cuid())
+  conversationId String              @map("conversation_id")
+  role           ChatMessageRole
+  content        String              @db.Text
+  sources        Json?
+  feedback       ChatFeedbackRating?
+  feedbackAt     DateTime?           @map("feedback_at") @db.Timestamptz(3)
+  conversation   ChatConversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime            @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
 }
 
 model ProductCategory {

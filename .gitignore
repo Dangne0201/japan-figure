@@ -9,6 +9,7 @@ uploads/
 
 # Dependencies
 node_modules/
+apps/api/src/generated/prisma/
 
 # Build and test output
 .next/

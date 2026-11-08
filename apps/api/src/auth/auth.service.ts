@@ -6,7 +6,7 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthActionType, Prisma, User, UserRole } from '@prisma/client';
+import { AuthActionType, Prisma, User, UserRole } from '../generated/prisma/client';
 import { compare, hash } from 'bcryptjs';
 import { createHash, randomBytes } from 'node:crypto';
 import { JwtService } from '@nestjs/jwt';

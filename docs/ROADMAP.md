@@ -41,19 +41,21 @@ Work is phase-based. The storefront and core buying experience take priority; ch
 
 ## Phase 5a — Chatbot knowledge and retrieval
 
-- Vietnamese policy and shop knowledge documents match implemented behavior.
+- Vietnamese policy and shop knowledge documents match implemented behavior; the corpus is being expanded with detailed catalog, checkout, order, review, wishlist, and privacy guidance in Phase 6.
 - Document/product ingestion, embeddings, pgvector storage, source metadata, hybrid retrieval, relevance threshold, and re-index jobs work locally.
 - Ollama is the default provider with configurable Gemini fallback; provider errors and benchmark limitations are documented.
 - Chunking and retrieval tests pass.
 
 ## Phase 5b — Chatbot experience
 
+- **Part 1 complete:** authenticated, owner-scoped conversation persistence and grounded streaming API with safe live catalog lookups.
+- **Part 2 complete:** storefront chat UI, feedback, admin conversation management, and a 40-question retrieval evaluation harness.
 - Vietnamese assistant answers grounded in local knowledge and deterministic live lookups; it declines unknown/off-topic questions and cannot expose other users' data.
-- Streaming UI, persistence, rate limiting, feedback, admin management, and evaluation harness are complete.
+- Completion criteria: streaming UI, persistence, rate limiting, feedback, admin management, and evaluation harness.
 - At least 40 evaluation questions cover normal, trick, off-topic, injection, and cross-user cases; pass rate and limitations are documented.
 
 ## Phase 6 — Polish
 
-- Security, performance, coverage, e2e, and observability checks are completed; findings are addressed and documented.
-- Reset-demo workflow, polished docs, contribution guide, CI badge, and release checklist are complete.
-- No secrets are tracked; license, disclaimer, image policy, and repository metadata are verified.
+- **Part 1 complete:** expanded and re-indexed chatbot knowledge corpus; reviewed security controls; fixed cookie-authenticated CSRF and enforced HTTPS/secure cookies in production; recorded test and coverage baseline.
+- **Part 2 in progress:** Prisma 7.10.1 and pg adapter upgrade clears the production dependency audit; three API e2e cases run in CI; bounded catalog Redis caching, a series trigram index, Prometheus metrics, reset-demo confirmation workflow, and README/CONTRIBUTING/docs index are implemented. Remaining: Lighthouse/mobile validation, production Docker-image smoke test, coverage report/threshold decision, secrets/history and repository metadata checks, and release readiness.
+- Completion also requires: no secrets in git history; license, disclaimer, image policy, and repository metadata verified.

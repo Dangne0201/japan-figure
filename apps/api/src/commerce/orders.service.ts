@@ -12,7 +12,7 @@ import {
   PaymentStatus,
   Prisma,
   ReviewStatus,
-} from '@prisma/client';
+} from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { KnowledgeQueue, type ProductKnowledgeQueue } from '../knowledge/knowledge-queue.service';
 import { releaseOrderCommitments, transitionOrder } from './order-lifecycle';

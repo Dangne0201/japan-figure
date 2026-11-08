@@ -1,4 +1,4 @@
-import { KnowledgeSourceType } from '@prisma/client';
+import { KnowledgeSourceType } from '../src/generated/prisma/client';
 import { KnowledgeIndexer } from '../src/knowledge/knowledge-indexer.service';
 import type { EmbeddingClient } from '../src/knowledge/embedding-client';
 import type { PrismaService } from '../src/database/prisma.service';

@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import { readCookie, ACCESS_COOKIE } from './auth-cookie';
 import type { AuthenticatedUser } from './auth.types';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../generated/prisma/client';
 
 interface AccessTokenPayload {
   sub: string;

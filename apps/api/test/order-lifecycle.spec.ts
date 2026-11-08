@@ -1,5 +1,5 @@
 import { ConflictException } from '@nestjs/common';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus } from '../src/generated/prisma/client';
 import { assertOrderTransition } from '../src/commerce/order-lifecycle';
 
 describe('order lifecycle', () => {

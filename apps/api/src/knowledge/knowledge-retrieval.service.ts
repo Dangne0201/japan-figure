@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { KnowledgeSourceType } from '@prisma/client';
+import { KnowledgeSourceType } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { normalizeForSearch } from './chunking';
 import type { AppConfig } from '../config/env';

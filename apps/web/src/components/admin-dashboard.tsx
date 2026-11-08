@@ -408,6 +408,9 @@ export default function AdminDashboard() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link className="button-secondary" href="/admin/chat">
+              Hội thoại chatbot
+            </Link>
             <Link className="button-secondary" href="#admin-operations-title">
               Đơn hàng &amp; vận hành
             </Link>

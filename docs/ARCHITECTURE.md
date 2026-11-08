@@ -24,10 +24,10 @@ flowchart LR
 | ---------- | -------------------------------------------------------------------------------------------------------------- |
 | Nginx      | Single LAN-facing entry point; publishes configurable host port `8081` by default and routes web/API requests. |
 | Web        | Next.js App Router storefront, customer account pages, and role-protected `/admin` UI.                         |
-| API        | NestJS REST API, validation, authentication, business rules, Swagger/OpenAPI, and request-ID logging.          |
+| API        | NestJS REST API, validation, authentication, business rules, Swagger/OpenAPI, request-ID logging, and metrics. |
 | Worker     | BullMQ jobs for simulated order progression, fake email, and product/document re-indexing.                     |
 | PostgreSQL | Relational application data, Vietnamese search extensions, and 1024-dimensional vector embeddings.             |
-| Redis      | Queue backend, cache, rate-limit state, and short-lived session/cart data.                                     |
+| Redis      | Queue backend, bounded short-lived catalog cache, rate-limit state, and short-lived session/cart data.         |
 | Mailpit    | Local-only fake mailbox; no real email is sent.                                                                |
 | Ollama     | Optional local LLM and embedding provider running on the Windows host, not in Docker.                          |
 
@@ -45,9 +45,15 @@ Services should use health checks and healthy-start ordering. Persistent data us
 
 1. A browser requests the storefront through Nginx. Next.js renders the page and calls the REST API for catalog or account data.
 2. The catalog API validates filters and pagination, queries PostgreSQL for product data, and combines `unaccent` with `pg_trgm` for Vietnamese diacritic-insensitive and typo-tolerant search.
-3. The API validates input, applies business rules, reads/writes PostgreSQL, and uses Redis for ephemeral state, caching, rate limits, and queues.
+3. The API uses Prisma 7 with `@prisma/adapter-pg`, validates input, applies business rules, and reads/writes PostgreSQL. Redis carries ephemeral state, catalog caching, rate limits, and queues.
 4. Checkout stores order/payment state in PostgreSQL. Jobs are queued in Redis; workers update simulated statuses and deliver fake messages to Mailpit.
 5. Product and policy content is indexed from the database and `knowledge/`. The chatbot retrieves local sources only; it has no web access.
+
+## Performance and metrics
+
+- Public catalog home and product detail responses use a 10-second Redis TTL; filter facets use 60 seconds. Redis cache failures are logged and fall back to PostgreSQL. Catalog list and free-form suggestion queries are intentionally not cached to avoid unbounded key cardinality. Checkout always re-reads current price and stock.
+- Product imagery uses local generated SVG placeholders and local WebP overrides/uploads. Next.js `Image` components include responsive `sizes`; locally routed product assets bypass the optimizer so SVG placeholders and validated WebP files remain compatible.
+- `GET /api/metrics` exports Prometheus text-format request counters, aggregate request duration, process uptime, and resident memory. Labels are limited to method and status; request paths, user IDs, and other high-cardinality or private data are not exported.
 
 ## Chatbot retrieval flow
 

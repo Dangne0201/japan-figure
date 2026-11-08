@@ -1,4 +1,10 @@
-import { VoucherType, OrderStatus, ReviewStatus, ReturnStatus } from '@prisma/client';
+import {
+  VoucherType,
+  OrderStatus,
+  ReviewStatus,
+  ReturnStatus,
+  ChatFeedbackRating,
+} from '../generated/prisma/client';
 import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -75,6 +81,13 @@ export class AdminAuditListDto extends PageQueryDto {
   @IsString()
   @MaxLength(80)
   action?: string;
+}
+
+export class AdminChatConversationListDto extends PageQueryDto {
+  @ApiPropertyOptional({ enum: ChatFeedbackRating })
+  @IsOptional()
+  @IsEnum(ChatFeedbackRating)
+  feedback?: ChatFeedbackRating;
 }
 
 export class UpdateReviewStatusDto {

@@ -13,6 +13,34 @@ jobs:
   quality:
     name: Lint, test, and build
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: japan_figure
+          POSTGRES_USER: japan_figure
+          POSTGRES_PASSWORD: test-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U japan_figure -d japan_figure"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://japan_figure:test-password@localhost:5432/japan_figure
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: ci-test-secret-that-is-long-enough-for-jwt-signing
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -26,11 +54,27 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Apply migrations and seed catalog
+        run: |
+          npm run db:migrate
+          npm run db:seed
+
       - name: Lint
         run: npm run lint
 
       - name: Test
         run: npm test
+
+      - name: Upload API coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage
+          path: apps/api/coverage/lcov.info
+          if-no-files-found: warn
+
+      - name: API end-to-end tests
+        run: npm run test:e2e --workspace apps/api
 
       - name: Build
         run: npm run build

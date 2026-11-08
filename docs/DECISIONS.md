@@ -2,6 +2,56 @@
 
 Append one entry per decision: date, decision, reason, alternatives considered.
 
+## 2026-11-07 — Phase 5b implementation split
+
+- Split Phase 5b at the backend/API boundary because its persisted chat, streaming, user interface, admin, and evaluation scope is too large to implement and verify reliably as one change.
+- Part 1 covers owner-scoped conversation persistence, grounded streaming responses, safe public catalog lookups, and API tests. Part 2 covers the web chat experience, feedback, admin management, and the 40-question evaluation harness.
+- Keep chat conversations private to their authenticated owner; do not add anonymous or cross-user conversation access.
+- Alternatives considered: implement all Phase 5b features in one pass, or split by frontend/backend feature. The backend/API boundary provides a testable foundation before exposing the user interface.
+
+## 2026-11-07 — Local chat generation timeout
+
+- Set the default LLM provider request timeout to 120 seconds for the local CPU-only setup; the original 30-second default aborted a grounded chat stream after partial output.
+- Keep the timeout configurable, capped at 120 seconds, and below Nginx's 180-second stream timeout.
+- Alternatives considered: reduce the configured model size or increase proxy timeouts. The existing benchmark showed the configured 3B model produced a grounded answer, so allow adequate time before changing model quality or proxy behavior.
+
+## 2026-11-08 — Bound local chatbot response length
+
+- Cap Ollama chat generation at 256 new tokens and ask the assistant to answer concisely in 2–5 sentences.
+- A browser smoke test on CPU produced retrieval citations but did not complete before the 120-second request timeout; unbounded generation was the controllable cost driver.
+- Keep Gemini generation behavior unchanged; its provider currently uses the provider defaults.
+
+## 2026-11-08 — Keep generated chat answers in Vietnamese
+
+- Require the assistant to use Vietnamese throughout and paraphrase foreign-language terms rather than mixing languages.
+- A grounded UI smoke test returned an otherwise relevant answer with one Indonesian word; after strengthening the system instruction, a follow-up answer used Vietnamese and cited its source.
+- Alternatives considered: leave the general language instruction unchanged or add output post-processing. Prefer a prompt-level instruction because it preserves streaming and does not risk changing meaning with an automatic translation step.
+
+## 2026-11-08 — Expand the local chatbot knowledge corpus
+
+- Add focused Vietnamese documents for catalog interpretation, account/cart/checkout, order lifecycle, reviews/wishlist, and privacy boundaries, and add retrieval cases that assert these documents are found.
+- Base statements on current storefront behavior, API business logic, seed data, and already documented simulation policies; label all money, shipping, inventory, and delivery activity as simulated.
+- Keep current product price and stock out of policy documents because published-product context is indexed separately and refreshed from live database values.
+
+## 2026-11-08 — Upgrade Prisma to resolve dependency advisory
+
+- Upgrade `prisma`, `@prisma/client`, and the PostgreSQL driver adapter to 7.10.1. Use the new `prisma-client` generator, a generated TypeScript client under the API source tree, and `@prisma/adapter-pg`.
+- Configure the PostgreSQL pool with a maximum of 10 connections and a 5-second connection timeout to preserve bounded resource use and the previous timeout behavior.
+- Keep database schema changes migration-only. Existing pgvector `Unsupported` fields and parameterized raw SQL remain unchanged.
+- Alternatives considered: leave the high-severity advisory unresolved or force an unverified `deepmerge-ts` override. Prefer the upstream supported Prisma major upgrade; API tests/builds, Prisma schema validation, migrations, production audit, and Compose runtime were used as regression checks.
+
+## 2026-11-08 — Bound public catalog caching and metrics
+
+- Cache only the public catalog home, known product details, and filter facets in Redis. Use 10-second TTLs for home/details and 60 seconds for facets; log cache failures and fall back to PostgreSQL.
+- Do not cache arbitrary catalog searches or suggestion strings because unbounded cache-key cardinality could consume the no-eviction Redis budget used by BullMQ.
+- Expose process and HTTP metrics at `/api/metrics` using method/status-only labels; do not export request paths or user identifiers.
+
+## 2026-11-08 — Split Phase 6 polish work
+
+- Work on `phase/6-polish` and split Phase 6 into Part 1 (knowledge corpus, security review/remediation, quality/coverage/e2e verification) and Part 2 (performance, observability, reset-demo, portfolio docs, and release readiness).
+- Phase 5b was complete but still uncommitted when Phase 6 was approved. Preserve its changes on the new branch rather than staging, committing, or discarding them without explicit direction; flag this combined worktree for review before publication.
+- Alternatives considered: attempt the entire security, performance, quality, reset, and release checklist in one pass, or publish Phase 5b before any Phase 6 work. The bounded split avoids rushing the broad polish phase while preserving all current changes.
+
 ## 2026-11-07 — Brand and experience
 
 - Shop name: Japan Figure.

@@ -1,19 +1,34 @@
 # Japan Figure
 
+[![CI](https://github.com/Dangne0201/japan-figure/actions/workflows/ci.yml/badge.svg)](https://github.com/Dangne0201/japan-figure/actions/workflows/ci.yml)
+
 A learning project simulating a Vietnamese anime-figure e-commerce shop. The intended brand is premium yet friendly to young anime fans, with a bright pastel visual direction. The catalog includes Prize Figure, Scale Figure, Action Figure, and Chibi Figure products, including Nendoroid.
 
 > **Educational demo only.** This project is not affiliated with any brand, anime, or studio. Checkout creates local simulated orders and changes demo inventory only; no real payment or delivery is processed. Payment, shipping, and email integrations are simulated.
 
+## Features
+
+- Mobile-first catalog with Vietnamese search, typo tolerance, filters, product detail, and wishlist.
+- Customer accounts, addresses, cart, order history, and verified-buyer reviews.
+- Integer-VND checkout with explicitly simulated shipping, vouchers, loyalty points, and payment outcomes.
+- Role-protected admin tools for catalog, order, voucher, banner, review, customer, and chatbot operations.
+- Vietnamese chatbot grounded only in the local knowledge corpus and published catalog, with source citations and owner-scoped conversations.
+- NestJS REST API and Swagger, PostgreSQL/pgvector, Prisma 7 with the PostgreSQL driver adapter, Redis/BullMQ, Mailpit, and Nginx.
+
+## Screenshots
+
+> Screenshot/GIF placeholders: add self-captured desktop storefront, phone storefront, and chatbot screenshots after the local demo is running. Do not commit copyrighted figure or anime imagery.
+
 ## Project status
 
-The repository is implementing Phase 5a (chatbot knowledge and retrieval). See [docs/PROGRESS.md](docs/PROGRESS.md), [docs/DECISIONS.md](docs/DECISIONS.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DATA_MODEL.md](docs/DATA_MODEL.md), [docs/ROADMAP.md](docs/ROADMAP.md), and [docs/CHATBOT.md](docs/CHATBOT.md).
+The repository is completing Phase 6 hardening and portfolio polish. See the [documentation index](docs/README.md), [progress](docs/PROGRESS.md), [decisions](docs/DECISIONS.md), [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA_MODEL.md), [roadmap](docs/ROADMAP.md), [chatbot guide](docs/CHATBOT.md), and [security review](docs/SECURITY.md).
 
-## Planned stack
+## Technology stack
 
 - Web: Next.js App Router, TypeScript, Tailwind CSS.
-- API: NestJS, TypeScript, Prisma, REST, Swagger/OpenAPI.
+- API: NestJS, TypeScript, Prisma 7 with `@prisma/adapter-pg`, REST, Swagger/OpenAPI.
 - Data/services: PostgreSQL with pgvector, unaccent and pg_trgm; Redis and BullMQ; Nginx; Mailpit.
-- Local AI: Ollama on the Windows host, configurable through environment variables. Phase 5a builds a local-only knowledge and retrieval foundation; the chat API and UI are planned separately and must not use web search.
+- Local AI: Ollama on the Windows host, configurable through environment variables. The chatbot uses only the local knowledge corpus and published catalog, with authenticated owner-scoped chat and admin quality review; it does not use web search.
 
 ## Windows development notes
 
@@ -27,8 +42,15 @@ For faster file watching and dependency installation, place the repository in th
    The admin dashboard includes order cancellation and return moderation, voucher and storefront-banner management, review moderation, customer account controls, and an audit log. Payment, delivery, and returns are local simulations; no real refunds or transactions occur.
 6. To stop the stack, use `Ctrl+C`, then run `docker compose down`. To preserve the database, do not add `-v`.
 
-The web app is exposed on all host interfaces at port 8081 by default to avoid a known local project port collision. For phone testing, use the laptop's LAN IP on the same private Wi-Fi and allow only the chosen web port through Windows Firewall on the Private profile. API, database, and Redis ports are not published to the host/LAN. Mailpit UI is bound to localhost.
-Set the optional `SITE_URL` in `.env` to the LAN origin when product pages are shared from a phone; it controls absolute SEO/Open Graph URLs, auth email links, and the API's allowed browser origin. Compose defaults it to `http://localhost:${APP_PORT}`. `COOKIE_SECURE=false` is for local HTTP only; enable it when serving the app over HTTPS.
+### Tests, reset, and metrics
+
+- Run unit tests, lint, and production builds with `npm test`, `npm run lint`, and `npm run build`.
+- With the Compose database, Redis, and catalog seeded, run the API end-to-end checks with `docker compose run --rm --no-deps api npm run test:e2e --workspace apps/api`. CI provisions isolated PostgreSQL/Redis services, applies migrations, seeds the catalog, and runs these checks.
+- The Prometheus text endpoint is available at `/api/metrics`; it exports bounded method/status request counts, request-duration totals, process uptime, and resident memory.
+- To wipe demo users, orders, and database records, run `.\scripts\reset-demo.ps1` in PowerShell and type `RESET` at the confirmation prompt. The script re-applies migrations, seeds catalog/admin values from `.env`, re-indexes knowledge (Ollama must be reachable), and restarts Compose. It does not remove uploaded images or Mailpit messages. **This is destructive; never use it for data you need to keep.**
+
+The web app is exposed on all host interfaces at port 8081 by default to avoid a known local project port collision. For phone testing, use the laptop's LAN IP on the same trusted private Wi-Fi and allow only the chosen web port through Windows Firewall on the Private profile. Local HTTP is not encrypted; do not use it on a public or untrusted network. API, database, and Redis ports are not published to the host/LAN. Mailpit UI is bound to localhost.
+Set the optional `SITE_URL` in `.env` to the LAN origin when product pages are shared from a phone; it controls absolute SEO/Open Graph URLs, auth email links, and the API's allowed browser origin. Compose defaults it to `http://localhost:${APP_PORT}`. `COOKIE_SECURE=false` is for local HTTP only; production requires an HTTPS `SITE_URL` and `COOKIE_SECURE=true`.
 
 ### Commerce simulation (Phases 3a–3b)
 
@@ -41,6 +63,8 @@ Set the optional `SITE_URL` in `.env` to the LAN origin when product pages are s
 - Supported payment choices are fake bank transfer and fake COD. Transfer success/failure/cancel is selected on the order page. COD is marked paid only when the worker simulates delivery. There is no card form, payment provider, real charge, carrier request, or refund.
 - The BullMQ worker checks expiry and fulfillment every 15 seconds. After payment, demo orders move to preparation after 15 seconds, shipment after 30 more seconds, and delivery after another 30 seconds; generated tracking numbers and Mailpit order-status messages are fictional. Earned points are credited only on simulated delivery. A return request is available for seven days after delivery and does not issue a real refund.
 - The Phase 5a knowledge base uses local Markdown documents and published products only. It does not search the web. Ollama runs on the Windows host; if containers cannot reach it, set `OLLAMA_HOST=0.0.0.0` on Windows and allow port 11434 through Windows Firewall on the Private network. See [docs/CHATBOT.md](docs/CHATBOT.md) for indexing, retrieval, provider configuration, and benchmark instructions.
+- The signed-in chatbot at `/chat` answers from local documents and published product data, shows citations, and supports feedback. Admins can review transcripts at `/admin/chat`. Run the retrieval evaluation with `docker compose exec -T api npm run chatbot:evaluate --workspace apps/api`; it checks source retrieval, not answer quality.
+- Public catalog home, product detail, and filter facets use short-lived Redis caches; checkout still revalidates live prices and stock. Catalog lists and free-form suggestions are deliberately not cached to avoid unbounded cache-key growth.
 - Reviews require a delivered purchase and remain pending moderation; only approved reviews appear publicly. Wishlist and order data require authentication and are always scoped to the signed-in customer.
 - The PWA caches only versioned same-origin static assets and a static offline page. It never caches API responses, storefront pages, or account/order data. On localhost, browsers permit service workers over HTTP; installing from another device on the LAN requires HTTPS. Plain-HTTP LAN access remains available for regular browsing but is not installable as a PWA.
 - Rerunning the seed restores versioned catalog stock when doing so will not violate active reservations; it keeps order history and does not clear active reservations.

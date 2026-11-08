@@ -33,6 +33,9 @@ export default function SiteHeader({ initialQuery = '' }: { initialQuery?: strin
           <Link className="whitespace-nowrap hover:text-brand-plum" href="/products?featured=true">
             Nổi bật
           </Link>
+          <Link className="whitespace-nowrap hover:text-brand-plum" href="/chat">
+            Tư vấn
+          </Link>
         </nav>
         <div className="order-2 flex w-full items-center gap-3 sm:order-3 sm:w-auto">
           <div className="min-w-0 flex-1">

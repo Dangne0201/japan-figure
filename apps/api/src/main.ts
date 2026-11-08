@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { loadConfig } from './config/env';
 import { HttpExceptionFilter } from './common/http-exception.filter';
+import { SameOriginGuard } from './auth/same-origin.guard';
 
 async function bootstrap(): Promise<void> {
   const config = loadConfig();
@@ -24,6 +25,7 @@ async function bootstrap(): Promise<void> {
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalGuards(app.get(SameOriginGuard));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Japan Figure API')

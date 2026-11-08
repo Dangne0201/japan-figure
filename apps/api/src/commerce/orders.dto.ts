@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { PaymentOutcome } from '@prisma/client';
+import { PaymentOutcome } from '../generated/prisma/client';
 import { IsEnum, IsInt, IsString, Matches, Max, Min, MaxLength } from 'class-validator';
 
 export class PaymentOutcomeDto {

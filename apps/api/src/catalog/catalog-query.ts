@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
 
 export type Availability = 'in-stock' | 'sold-out';
 export type CatalogSort = 'newest' | 'price-asc' | 'price-desc' | 'name-asc';

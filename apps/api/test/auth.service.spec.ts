@@ -1,5 +1,5 @@
 import { UnauthorizedException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../src/generated/prisma/client';
 import { createHash } from 'node:crypto';
 import { AuthService } from '../src/auth/auth.service';
 import type { AppConfig } from '../src/config/env';

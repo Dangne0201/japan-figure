@@ -1,8 +1,8 @@
-import { PrismaClient } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import catalog from './seed-data/catalog.json';
+import { PrismaService } from '../src/database/prisma.service';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaService();
 
 interface SeedProduct {
   slug: string;

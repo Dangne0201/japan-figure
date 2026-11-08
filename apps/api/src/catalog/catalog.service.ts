@@ -1,5 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { createHash } from 'node:crypto';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import type Redis from 'ioredis';
+import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import {
   buildCatalogWhere,
@@ -78,9 +80,19 @@ export interface ProductCard {
 
 @Injectable()
 export class CatalogService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(CatalogService.name);
+  private hasLoggedCacheWarning = false;
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject('REDIS_CLIENT') private readonly redis: Redis,
+  ) {}
 
   async list(query: CatalogListQuery) {
+    return this.listUncached(query);
+  }
+
+  private async listUncached(query: CatalogListQuery) {
     const page = query.page ?? 1;
     const limit = query.limit ?? 12;
     const search = normalizeSearchQuery(query.q);
@@ -176,95 +188,141 @@ export class CatalogService {
   }
 
   async facets() {
-    const [brands, series, categories, scaleRows] = await Promise.all([
-      this.prisma.brand.findMany({
-        where: { products: { some: { publishedAt: { not: null } } } },
-        select: { slug: true, name: true },
-        orderBy: { name: 'asc' },
-      }),
-      this.prisma.series.findMany({
-        where: { products: { some: { publishedAt: { not: null } } } },
-        select: { slug: true, name: true },
-        orderBy: { name: 'asc' },
-      }),
-      this.prisma.category.findMany({
-        where: { products: { some: { product: { publishedAt: { not: null } } } } },
-        select: { slug: true, name: true },
-        orderBy: { name: 'asc' },
-      }),
-      this.prisma.product.findMany({
-        where: { publishedAt: { not: null }, scale: { not: null } },
-        select: { scale: true },
-        distinct: ['scale'],
-        orderBy: { scale: 'asc' },
-      }),
-    ]);
-    return { brands, series, categories, scales: scaleRows.flatMap(({ scale }) => scale ?? []) };
+    return this.withCache('catalog:v1:facets', 60, async () => {
+      const [brands, series, categories, scaleRows] = await Promise.all([
+        this.prisma.brand.findMany({
+          where: { products: { some: { publishedAt: { not: null } } } },
+          select: { slug: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+        this.prisma.series.findMany({
+          where: { products: { some: { publishedAt: { not: null } } } },
+          select: { slug: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+        this.prisma.category.findMany({
+          where: { products: { some: { product: { publishedAt: { not: null } } } } },
+          select: { slug: true, name: true },
+          orderBy: { name: 'asc' },
+        }),
+        this.prisma.product.findMany({
+          where: { publishedAt: { not: null }, scale: { not: null } },
+          select: { scale: true },
+          distinct: ['scale'],
+          orderBy: { scale: 'asc' },
+        }),
+      ]);
+      return { brands, series, categories, scales: scaleRows.flatMap(({ scale }) => scale ?? []) };
+    });
   }
 
   async home() {
-    const now = new Date();
-    const [featured, newArrivals, preorders, sales, banners] = await Promise.all([
-      this.list({ featured: true, limit: 8 }),
-      this.list({ newArrival: true, limit: 8 }),
-      this.list({ preorder: true, limit: 8 }),
-      this.list({ saleOnly: true, limit: 8, sort: 'price-asc' }),
-      this.prisma.banner.findMany({
-        where: { isActive: true, startsAt: { lte: now }, endsAt: { gt: now } },
-        select: { id: true, title: true, description: true, imageUrl: true, href: true },
-        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
-        take: 4,
-      }),
-    ]);
-    return {
-      featured: featured.items,
-      newArrivals: newArrivals.items,
-      preorders: preorders.items,
-      sales: sales.items,
-      banners,
-    };
+    return this.withCache('catalog:v1:home', 10, async () => {
+      const now = new Date();
+      const [featured, newArrivals, preorders, sales, banners] = await Promise.all([
+        this.list({ featured: true, limit: 8 }),
+        this.list({ newArrival: true, limit: 8 }),
+        this.list({ preorder: true, limit: 8 }),
+        this.list({ saleOnly: true, limit: 8, sort: 'price-asc' }),
+        this.prisma.banner.findMany({
+          where: { isActive: true, startsAt: { lte: now }, endsAt: { gt: now } },
+          select: { id: true, title: true, description: true, imageUrl: true, href: true },
+          orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+          take: 4,
+        }),
+      ]);
+      return {
+        featured: featured.items,
+        newArrivals: newArrivals.items,
+        preorders: preorders.items,
+        sales: sales.items,
+        banners,
+      };
+    });
   }
 
   async detail(slug: string) {
-    const product = await this.prisma.product.findFirst({
-      where: { slug, publishedAt: { not: null } },
-      include: productInclude,
-    });
-    if (!product) throw new NotFoundException('Không tìm thấy sản phẩm.');
-
-    const [related, reviews, reviewAggregate] = await Promise.all([
-      this.prisma.product.findMany({
-        where: {
-          publishedAt: { not: null },
-          seriesId: product.seriesId,
-          id: { not: product.id },
-        },
+    return this.withCache(this.cacheKey('detail', slug), 10, async () => {
+      const product = await this.prisma.product.findFirst({
+        where: { slug, publishedAt: { not: null } },
         include: productInclude,
-        orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
-        take: 4,
-      }),
-      this.prisma.review.findMany({
-        where: { productId: product.id, status: 'APPROVED' },
-        select: {
-          rating: true,
-          body: true,
-          createdAt: true,
-          user: { select: { name: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-      }),
-      this.prisma.review.aggregate({
-        where: { productId: product.id, status: 'APPROVED' },
-        _avg: { rating: true },
-      }),
-    ]);
-    return {
-      product: toProductCard(product),
-      related: related.map(toProductCard),
-      reviews,
-      averageRating: reviewAggregate._avg.rating,
-    };
+      });
+      if (!product) throw new NotFoundException('Không tìm thấy sản phẩm.');
+
+      const [related, reviews, reviewAggregate] = await Promise.all([
+        this.prisma.product.findMany({
+          where: {
+            publishedAt: { not: null },
+            seriesId: product.seriesId,
+            id: { not: product.id },
+          },
+          include: productInclude,
+          orderBy: [{ isFeatured: 'desc' }, { name: 'asc' }],
+          take: 4,
+        }),
+        this.prisma.review.findMany({
+          where: { productId: product.id, status: 'APPROVED' },
+          select: {
+            rating: true,
+            body: true,
+            createdAt: true,
+            user: { select: { name: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 20,
+        }),
+        this.prisma.review.aggregate({
+          where: { productId: product.id, status: 'APPROVED' },
+          _avg: { rating: true },
+        }),
+      ]);
+      return {
+        product: toProductCard(product),
+        related: related.map(toProductCard),
+        reviews,
+        averageRating: reviewAggregate._avg.rating,
+      };
+    });
+  }
+
+  private cacheKey(operation: string, value: unknown): string {
+    const digest = createHash('sha256')
+      .update(JSON.stringify(value) ?? 'null')
+      .digest('hex');
+    return `catalog:v1:${operation}:${digest}`;
+  }
+
+  private async withCache<T>(key: string, ttlSeconds: number, load: () => Promise<T>): Promise<T> {
+    try {
+      const cached = await this.redis.get(key);
+      if (cached !== null) {
+        this.hasLoggedCacheWarning = false;
+        try {
+          return JSON.parse(cached) as T;
+        } catch (error) {
+          this.logCacheWarning('decode', error);
+          await this.redis.del(key);
+        }
+      }
+    } catch (error) {
+      this.logCacheWarning('read', error);
+    }
+
+    const value = await load();
+    try {
+      await this.redis.set(key, JSON.stringify(value), 'EX', ttlSeconds);
+      this.hasLoggedCacheWarning = false;
+    } catch (error) {
+      this.logCacheWarning('write', error);
+    }
+    return value;
+  }
+
+  private logCacheWarning(operation: string, error: unknown): void {
+    if (this.hasLoggedCacheWarning) return;
+    const detail = error instanceof Error ? error.message : 'Unknown Redis error';
+    this.logger.warn(`Catalog cache ${operation} failed; serving uncached data. ${detail}`);
+    this.hasLoggedCacheWarning = true;
   }
 
   private async findAvailableProductIds(): Promise<string[]> {

@@ -50,10 +50,10 @@ export class LlmProvider {
     }
   }
 
-  async *stream(messages: ChatMessage[]): AsyncGenerator<string> {
+  async *stream(messages: ChatMessage[], signal?: AbortSignal): AsyncGenerator<string> {
     if (!messages.length) throw new RangeError('At least one chat message is required.');
     if (this.config.LLM_PROVIDER === 'gemini') {
-      yield* this.streamGeminiWithRetry(messages);
+      yield* this.streamGeminiWithRetry(messages, signal);
       return;
     }
 
@@ -61,12 +61,17 @@ export class LlmProvider {
     let primaryEmitted = false;
     for (let attempt = 0; attempt <= this.config.LLM_RETRY_COUNT; attempt += 1) {
       try {
-        for await (const token of this.streamOllama(messages, this.config.OLLAMA_CHAT_MODEL)) {
+        for await (const token of this.streamOllama(
+          messages,
+          this.config.OLLAMA_CHAT_MODEL,
+          signal,
+        )) {
           primaryEmitted = true;
           yield token;
         }
         return;
       } catch (error) {
+        if (signal?.aborted) throw error;
         if (primaryEmitted) {
           throw new ServiceUnavailableException(
             `Ollama stream failed after returning partial output: ${errorMessage(error)}`,
@@ -82,8 +87,9 @@ export class LlmProvider {
       );
     }
     try {
-      yield* this.streamWithRetry((signal) =>
-        this.streamOllama(messages, this.config.OLLAMA_CHAT_FALLBACK_MODEL, signal),
+      yield* this.streamWithRetry(
+        (signal) => this.streamOllama(messages, this.config.OLLAMA_CHAT_FALLBACK_MODEL, signal),
+        signal,
       );
     } catch (fallbackError) {
       throw new ServiceUnavailableException(
@@ -97,6 +103,7 @@ export class LlmProvider {
       model,
       messages,
       stream: false,
+      options: { temperature: 0.2, num_predict: 256 },
     });
     if (!response.ok) {
       throw new Error(`Ollama returned HTTP ${response.status}: ${await response.text()}`);
@@ -141,7 +148,12 @@ export class LlmProvider {
   ): AsyncGenerator<string> {
     const response = await this.request(
       new URL('/api/chat', this.config.OLLAMA_BASE_URL),
-      { model, messages, stream: true },
+      {
+        model,
+        messages,
+        stream: true,
+        options: { temperature: 0.2, num_predict: 256 },
+      },
       {},
       signal,
     );
@@ -157,9 +169,12 @@ export class LlmProvider {
     }
   }
 
-  private async *streamGeminiWithRetry(messages: ChatMessage[]): AsyncGenerator<string> {
+  private async *streamGeminiWithRetry(
+    messages: ChatMessage[],
+    externalSignal?: AbortSignal,
+  ): AsyncGenerator<string> {
     try {
-      yield* this.streamWithRetry(() => this.streamGemini(messages));
+      yield* this.streamWithRetry((signal) => this.streamGemini(messages, signal), externalSignal);
     } catch (error) {
       throw new ServiceUnavailableException(`Gemini streaming failed: ${errorMessage(error)}`);
     }
@@ -167,19 +182,23 @@ export class LlmProvider {
 
   private async *streamWithRetry(
     factory: (signal?: AbortSignal) => AsyncGenerator<string>,
+    externalSignal?: AbortSignal,
   ): AsyncGenerator<string> {
     let failure: unknown;
     for (let attempt = 0; attempt <= this.config.LLM_RETRY_COUNT; attempt += 1) {
       let emitted = false;
       try {
-        for await (const token of factory(
-          AbortSignal.timeout(this.config.LLM_REQUEST_TIMEOUT_MS),
-        )) {
+        const timeoutSignal = AbortSignal.timeout(this.config.LLM_REQUEST_TIMEOUT_MS);
+        const signal = externalSignal
+          ? AbortSignal.any([timeoutSignal, externalSignal])
+          : timeoutSignal;
+        for await (const token of factory(signal)) {
           emitted = true;
           yield token;
         }
         return;
       } catch (error) {
+        if (externalSignal?.aborted) throw error;
         if (emitted) throw error;
         failure = error;
         if (attempt < this.config.LLM_RETRY_COUNT) await delay(250 * 2 ** attempt);
@@ -188,7 +207,10 @@ export class LlmProvider {
     throw failure;
   }
 
-  private async *streamGemini(messages: ChatMessage[]): AsyncGenerator<string> {
+  private async *streamGemini(
+    messages: ChatMessage[],
+    signal?: AbortSignal,
+  ): AsyncGenerator<string> {
     const { systemInstruction, contents } = toGeminiMessages(messages);
     const response = await this.request(
       this.geminiUrl('streamGenerateContent?alt=sse'),
@@ -200,6 +222,7 @@ export class LlmProvider {
         generationConfig: { temperature: 0.2 },
       },
       { 'x-goog-api-key': this.requireGeminiKey() },
+      signal,
     );
     if (!response.ok) {
       throw new Error(`Gemini returned HTTP ${response.status}: ${await response.text()}`);
@@ -224,11 +247,13 @@ export class LlmProvider {
     headers: Record<string, string> = {},
     signal?: AbortSignal,
   ): Promise<Response> {
+    const timeoutSignal = AbortSignal.timeout(this.config.LLM_REQUEST_TIMEOUT_MS);
+    const requestSignal = signal ? AbortSignal.any([timeoutSignal, signal]) : timeoutSignal;
     return fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json', ...headers },
       body: JSON.stringify(body),
-      signal: signal ?? AbortSignal.timeout(this.config.LLM_REQUEST_TIMEOUT_MS),
+      signal: requestSignal,
     });
   }
 

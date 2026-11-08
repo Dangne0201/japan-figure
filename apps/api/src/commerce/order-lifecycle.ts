@@ -5,7 +5,7 @@ import {
   ReservationStatus,
   type Order,
   type Prisma,
-} from '@prisma/client';
+} from '../generated/prisma/client';
 
 type Transaction = Prisma.TransactionClient;
 

@@ -1,6 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../src/generated/prisma/client';
 import request from 'supertest';
 import { AccessTokenGuard } from '../src/auth/access-token.guard';
 import { AdminController } from '../src/admin/admin.controller';
@@ -12,7 +12,11 @@ describe('AdminController authorization', () => {
   let app: INestApplication;
   let role: UserRole = UserRole.USER;
   const admin = { dashboard: jest.fn().mockResolvedValue({ products: 4 }) };
-  const operations = { listOrders: jest.fn().mockResolvedValue({ items: [], pagination: {} }) };
+  const operations = {
+    listOrders: jest.fn().mockResolvedValue({ items: [], pagination: {} }),
+    listChatConversations: jest.fn().mockResolvedValue({ items: [], pagination: {} }),
+    getChatConversation: jest.fn().mockResolvedValue({ id: 'conversation-1', messages: [] }),
+  };
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -51,6 +55,7 @@ describe('AdminController authorization', () => {
     await request(app.getHttpServer()).get('/api/admin/dashboard').expect(403);
     expect(admin.dashboard).not.toHaveBeenCalled();
     expect(operations.listOrders).not.toHaveBeenCalled();
+    expect(operations.listChatConversations).not.toHaveBeenCalled();
   });
 
   it('allows an admin to load the dashboard', async () => {
@@ -69,5 +74,22 @@ describe('AdminController authorization', () => {
     role = UserRole.ADMIN;
     await request(app.getHttpServer()).get('/api/admin/orders').expect(200);
     expect(operations.listOrders).toHaveBeenCalledTimes(1);
+  });
+
+  it('protects chatbot conversation browsing with the admin role guard', async () => {
+    await request(app.getHttpServer()).get('/api/admin/chat/conversations').expect(403);
+    expect(operations.listChatConversations).not.toHaveBeenCalled();
+
+    role = UserRole.ADMIN;
+    await request(app.getHttpServer())
+      .get('/api/admin/chat/conversations?page=2&limit=10&feedback=HELPFUL&q=Mai')
+      .expect(200);
+    expect(operations.listChatConversations).toHaveBeenCalledWith(
+      expect.objectContaining({ page: '2', limit: '10', feedback: 'HELPFUL', q: 'Mai' }),
+    );
+    await request(app.getHttpServer())
+      .get('/api/admin/chat/conversations/conversation-1')
+      .expect(200);
+    expect(operations.getChatConversation).toHaveBeenCalledWith('conversation-1');
   });
 });

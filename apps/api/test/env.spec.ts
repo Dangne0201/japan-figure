@@ -43,4 +43,19 @@ describe('loadConfig', () => {
       }),
     ).not.toThrow();
   });
+
+  it('requires secure cookies and an HTTPS browser origin in production', () => {
+    const production = {
+      ...requiredEnvironment,
+      NODE_ENV: 'production',
+      JWT_ACCESS_SECRET: 'a-user-generated-random-secret-of-at-least-32-characters',
+      WEB_ORIGIN: 'https://shop.example',
+    };
+
+    expect(() => loadConfig(production)).toThrow('COOKIE_SECURE=true is required in production.');
+    expect(() =>
+      loadConfig({ ...production, COOKIE_SECURE: 'true', WEB_ORIGIN: 'http://shop.example' }),
+    ).toThrow('WEB_ORIGIN must use HTTPS in production.');
+    expect(() => loadConfig({ ...production, COOKIE_SECURE: 'true' })).not.toThrow();
+  });
 });

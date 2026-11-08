@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { KnowledgeSourceType, Prisma } from '@prisma/client';
+import { KnowledgeSourceType, Prisma } from '../generated/prisma/client';
 import { createHash, randomUUID } from 'node:crypto';
 import { readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';

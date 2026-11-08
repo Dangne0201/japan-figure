@@ -5,8 +5,8 @@ import {
   PaymentOutcome,
   PaymentStatus,
   Prisma,
-} from '@prisma/client';
-import type { PrismaClient } from '@prisma/client';
+} from '../generated/prisma/client';
+import type { PrismaClient } from '../generated/prisma/client';
 import { ConflictException } from '@nestjs/common';
 import type { Transporter } from 'nodemailer';
 import {

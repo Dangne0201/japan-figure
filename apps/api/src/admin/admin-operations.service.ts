@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import {
   OrderStatus,
+  ChatMessageRole,
   PaymentMethod,
   PaymentStatus,
   Prisma,
@@ -14,13 +15,14 @@ import {
   ReturnStatus,
   UserRole,
   VoucherType,
-} from '@prisma/client';
+} from '../generated/prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { KnowledgeQueue, type ProductKnowledgeQueue } from '../knowledge/knowledge-queue.service';
 import { releaseOrderCommitments, transitionOrder } from '../commerce/order-lifecycle';
 import type {
   AdminAuditListDto,
   AdminBannerFieldsDto,
+  AdminChatConversationListDto,
   AdminCustomerListDto,
   AdminOrderListDto,
   AdminReviewListDto,
@@ -490,6 +492,63 @@ export class AdminOperationsService {
       }),
     ]);
     return { items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } };
+  }
+
+  async listChatConversations(query: AdminChatConversationListDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 25;
+    const where: Prisma.ChatConversationWhereInput = {
+      ...(query.feedback
+        ? {
+            messages: {
+              some: { role: ChatMessageRole.ASSISTANT, feedback: query.feedback },
+            },
+          }
+        : {}),
+      ...(query.q
+        ? {
+            OR: [
+              { title: { contains: query.q, mode: 'insensitive' } },
+              { user: { name: { contains: query.q, mode: 'insensitive' } } },
+              { user: { email: { contains: query.q, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
+    };
+    const [total, items] = await Promise.all([
+      this.prisma.chatConversation.count({ where }),
+      this.prisma.chatConversation.findMany({
+        where,
+        include: {
+          user: { select: { id: true, name: true, email: true } },
+          _count: { select: { messages: true } },
+          messages: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            select: { role: true, content: true, feedback: true, createdAt: true },
+          },
+        },
+        orderBy: [{ updatedAt: 'desc' }, { id: 'asc' }],
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+    ]);
+    return { items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } };
+  }
+
+  async getChatConversation(conversationId: string) {
+    const conversation = await this.prisma.chatConversation.findUnique({
+      where: { id: conversationId },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        messages: {
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        },
+      },
+    });
+    if (!conversation) throw new NotFoundException('Cuộc trò chuyện không tồn tại.');
+    return { ...conversation, messages: conversation.messages.reverse() };
   }
 
   private validateVoucher(input: AdminVoucherFieldsDto): Prisma.VoucherUncheckedCreateInput {

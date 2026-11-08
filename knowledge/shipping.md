@@ -18,10 +18,10 @@ Ba lựa chọn hiển thị là GHN, GHTK và Viettel Post. Mỗi mức dưới
 | Nam     | GHTK         |        23.000 ₫ |        5.000 ₫ | 2–3 ngày           |
 | Nam     | Viettel Post |        27.000 ₫ |        4.000 ₫ | 2–3 ngày           |
 
-Tỉnh/thành trong địa chỉ chọn nhóm khu vực. Tên hãng chỉ dùng để minh họa; hệ thống không gửi yêu cầu hoặc dữ liệu cho hãng vận chuyển.
+Tỉnh/thành trong địa chỉ chọn nhóm khu vực. GHN, GHTK và Viettel Post chỉ là nhãn lựa chọn để minh họa; website không gửi yêu cầu giao hàng, dữ liệu người nhận hoặc đơn hàng tới các hãng vận chuyển.
 
 Phí giao hàng được miễn khi tiền hàng sau giảm giá đạt ít nhất 1.500.000 ₫ hoặc khi mã miễn phí giao hàng hợp lệ được áp dụng. Mã `FREESHIP` trong dữ liệu seed có mức đơn tối thiểu 300.000 ₫. Các mức phí và thời gian dự kiến là giả lập, không phải báo giá hay cam kết giao hàng thực tế.
 
 ## Theo dõi đơn
 
-Mã vận đơn và tiến trình chuẩn bị, giao hàng, hoàn tất được tạo bởi worker mô phỏng. Không thể dùng mã đó để tra cứu tại hãng vận chuyển. Địa chỉ giao hàng dùng danh mục tĩnh kèm dự án; ứng dụng không tra cứu dịch vụ địa chỉ trực tuyến.
+Mã vận đơn và tiến trình chuẩn bị, giao hàng, hoàn tất được tạo bởi worker mô phỏng. Mã vận đơn này không tồn tại trên hệ thống của GHN, GHTK hoặc Viettel Post và không thể tra cứu trên website của hãng. Địa chỉ giao hàng dùng danh mục tĩnh kèm dự án; ứng dụng không tra cứu dịch vụ địa chỉ trực tuyến.

@@ -1,5 +1,10 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
-import { OrderStatus, PaymentMethod, PaymentOutcome, PaymentStatus } from '@prisma/client';
+import {
+  OrderStatus,
+  PaymentMethod,
+  PaymentOutcome,
+  PaymentStatus,
+} from '../src/generated/prisma/client';
 import { OrdersService } from '../src/commerce/orders.service';
 import type { PrismaService } from '../src/database/prisma.service';
 

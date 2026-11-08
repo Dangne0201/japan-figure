@@ -1,4 +1,4 @@
-import { KnowledgeSourceType } from '@prisma/client';
+import { KnowledgeSourceType } from '../src/generated/prisma/client';
 import { loadConfig } from '../src/config/env';
 import type { PrismaService } from '../src/database/prisma.service';
 import { chunkMarkdown, normalizeForSearch } from '../src/knowledge/chunking';

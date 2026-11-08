@@ -28,7 +28,7 @@ const envSchema = z
     OLLAMA_CHAT_FALLBACK_MODEL: z.string().default('qwen2.5:1.5b-instruct'),
     OLLAMA_EMBEDDING_MODEL: z.string().default('bge-m3'),
     LLM_PROVIDER: z.enum(['ollama', 'gemini']).default('ollama'),
-    LLM_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120_000).default(30_000),
+    LLM_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120_000).default(120_000),
     LLM_RETRY_COUNT: z.coerce.number().int().min(0).max(5).default(2),
     GEMINI_API_KEY: z.string().optional(),
     GEMINI_CHAT_MODEL: z.string().default('gemini-2.5-flash'),
@@ -37,6 +37,20 @@ const envSchema = z
     PRODUCT_UPLOAD_DIR: z.string().min(1).default('/app/product-uploads'),
   })
   .superRefine((config, context) => {
+    if (config.NODE_ENV === 'production' && !config.COOKIE_SECURE) {
+      context.addIssue({
+        code: 'custom',
+        path: ['COOKIE_SECURE'],
+        message: 'COOKIE_SECURE=true is required in production.',
+      });
+    }
+    if (config.NODE_ENV === 'production' && new URL(config.WEB_ORIGIN).protocol !== 'https:') {
+      context.addIssue({
+        code: 'custom',
+        path: ['WEB_ORIGIN'],
+        message: 'WEB_ORIGIN must use HTTPS in production.',
+      });
+    }
     if (config.LLM_PROVIDER === 'gemini' && !config.GEMINI_API_KEY?.trim()) {
       context.addIssue({
         code: 'custom',

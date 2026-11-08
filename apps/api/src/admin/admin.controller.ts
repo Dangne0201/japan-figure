@@ -14,7 +14,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { UserRole } from '@prisma/client';
+import { UserRole } from '../generated/prisma/client';
 import { ApiBody, ApiConsumes, ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { AccessTokenGuard } from '../auth/access-token.guard';
@@ -30,6 +30,7 @@ import {
 import {
   AdminAuditListDto,
   AdminBannerFieldsDto,
+  AdminChatConversationListDto,
   AdminCustomerListDto,
   AdminOrderActionDto,
   AdminOrderListDto,
@@ -260,5 +261,17 @@ export class AdminController {
   @ApiOperation({ summary: 'Browse admin audit history' })
   listAuditLogs(@Query() query: AdminAuditListDto) {
     return this.operations.listAuditLogs(query);
+  }
+
+  @Get('chat/conversations')
+  @ApiOperation({ summary: 'List customer chatbot conversations for administration' })
+  listChatConversations(@Query() query: AdminChatConversationListDto) {
+    return this.operations.listChatConversations(query);
+  }
+
+  @Get('chat/conversations/:conversationId')
+  @ApiOperation({ summary: 'Read a customer chatbot conversation for administration' })
+  getChatConversation(@Param('conversationId') conversationId: string) {
+    return this.operations.getChatConversation(conversationId);
   }
 }

@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client';
 import Redis from 'ioredis';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';

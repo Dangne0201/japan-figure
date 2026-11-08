@@ -1,5 +1,5 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma, type Address } from '@prisma/client';
+import { Prisma, type Address } from '../generated/prisma/client';
 import dataset from './data/administrative-units.json';
 import { PrismaService } from '../database/prisma.service';
 import type { AddressInputDto } from './addresses.dto';

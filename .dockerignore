@@ -2,6 +2,7 @@
 .github
 node_modules
 **/node_modules
+apps/api/src/generated/prisma
 .next
 **/.next
 dist

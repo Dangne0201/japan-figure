@@ -14,7 +14,7 @@ import {
   ReservationStatus,
   VoucherType,
   type Order,
-} from '@prisma/client';
+} from '../generated/prisma/client';
 import { randomBytes } from 'node:crypto';
 import { PrismaService } from '../database/prisma.service';
 import { KnowledgeQueue, type ProductKnowledgeQueue } from '../knowledge/knowledge-queue.service';

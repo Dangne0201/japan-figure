@@ -7,6 +7,9 @@
     "deleteOutDir": true,
     "webpack": false,
     "tsConfigPath": "tsconfig.build.json",
-    "assets": [{ "include": "addresses/data/**/*.json", "outDir": "dist" }]
+    "assets": [
+      { "include": "addresses/data/**/*.json", "outDir": "dist" },
+      { "include": "knowledge/**/*.json", "outDir": "dist" }
+    ]
   }
 }
