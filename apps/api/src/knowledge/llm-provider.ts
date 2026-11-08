@@ -103,7 +103,7 @@ export class LlmProvider {
       model,
       messages,
       stream: false,
-      options: { temperature: 0.2, num_predict: 256 },
+      options: { temperature: 0.2, num_predict: 128 },
     });
     if (!response.ok) {
       throw new Error(`Ollama returned HTTP ${response.status}: ${await response.text()}`);
@@ -152,7 +152,7 @@ export class LlmProvider {
         model,
         messages,
         stream: true,
-        options: { temperature: 0.2, num_predict: 256 },
+        options: { temperature: 0.2, num_predict: 128 },
       },
       {},
       signal,

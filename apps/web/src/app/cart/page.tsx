@@ -10,10 +10,12 @@ export const metadata: Metadata = {
 
 export default function CartRoute() {
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <>
       <SiteHeader />
-      <CartPage />
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-brand-cream">
+        <CartPage />
+      </main>
       <SiteFooter />
-    </main>
+    </>
   );
 }

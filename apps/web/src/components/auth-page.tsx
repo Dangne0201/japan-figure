@@ -14,7 +14,11 @@ export default function AuthPage({
   return (
     <>
       <SiteHeader />
-      <main className="page-shell flex min-h-[65vh] flex-col items-center justify-center py-12">
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="page-shell flex min-h-[65vh] flex-col items-center justify-center py-12"
+      >
         <div className="mb-7 max-w-md text-center">
           <h1 className="text-3xl font-bold tracking-tight text-brand-ink">{title}</h1>
           <p className="mt-3 text-sm leading-6 text-brand-ink/70">{description}</p>

@@ -1,6 +1,8 @@
 export default function ProductsLoading() {
   return (
     <main
+      id="main-content"
+      tabIndex={-1}
       className="page-shell min-h-screen animate-pulse py-12"
       aria-busy="true"
       aria-label="Đang tải danh mục"

@@ -84,7 +84,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_CHAT_MODEL: ${GEMINI_CHAT_MODEL:-gemini-2.5-flash}
       KNOWLEDGE_RELEVANCE_THRESHOLD: ${KNOWLEDGE_RELEVANCE_THRESHOLD:-0.42}
-      KNOWLEDGE_TOP_K: ${KNOWLEDGE_TOP_K:-5}
+      KNOWLEDGE_TOP_K: ${KNOWLEDGE_TOP_K:-4}
       PRODUCT_UPLOAD_DIR: /app/product-uploads
     volumes:
       - product_uploads:/app/product-uploads
@@ -156,7 +156,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_CHAT_MODEL: ${GEMINI_CHAT_MODEL:-gemini-2.5-flash}
       KNOWLEDGE_RELEVANCE_THRESHOLD: ${KNOWLEDGE_RELEVANCE_THRESHOLD:-0.42}
-      KNOWLEDGE_TOP_K: ${KNOWLEDGE_TOP_K:-5}
+      KNOWLEDGE_TOP_K: ${KNOWLEDGE_TOP_K:-4}
     depends_on:
       api:
         condition: service_healthy

@@ -186,12 +186,16 @@ export default function AdminChatConsole() {
   }
 
   if (access === 'loading') {
-    return <main className="page-shell py-12">Đang kiểm tra quyền quản trị…</main>;
+    return (
+      <main id="main-content" tabIndex={-1} className="page-shell py-12">
+        Đang kiểm tra quyền quản trị…
+      </main>
+    );
   }
 
   if (access === 'guest' || access === 'forbidden' || access === 'error') {
     return (
-      <main className="page-shell py-12">
+      <main id="main-content" tabIndex={-1} className="page-shell py-12">
         <h1 className="text-2xl font-semibold">Quản lý chatbot</h1>
         <p className="mt-3 text-sm text-red-900" role="alert">
           {access === 'guest'
@@ -208,7 +212,7 @@ export default function AdminChatConsole() {
   }
 
   return (
-    <main className="page-shell py-8 sm:py-12">
+    <main id="main-content" tabIndex={-1} className="page-shell py-8 sm:py-12">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-brand-plum">Quản trị mô phỏng</p>

@@ -32,7 +32,11 @@ export default function AccountProfile() {
       try {
         const response = await readProfile();
         if (!response.ok) {
-          if (active) setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.');
+          if (active) {
+            setError(
+              'Bạn chưa đăng nhập hoặc phiên đăng nhập đã hết hạn. Vui lòng đăng nhập để xem tài khoản.',
+            );
+          }
           return;
         }
         const result = (await response.json()) as Profile;

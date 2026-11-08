@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CatalogFacets } from '../lib/catalog';
 
 export type SelectedFilters = Record<string, string | undefined>;
@@ -13,14 +13,45 @@ export default function CatalogFilters({
   selected: SelectedFilters;
 }) {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const dialogRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
-    const closeOnEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setOpen(false);
+    const dialog = dialogRef.current;
+    const focusableSelector =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+    dialog?.querySelector<HTMLElement>(focusableSelector)?.focus();
+
+    const trapFocusAndCloseOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setOpen(false);
+        return;
+      }
+
+      if (event.key !== 'Tab' || !dialog) return;
+      const focusable = Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter(
+        (element) => element.getClientRects().length > 0,
+      );
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) {
+        event.preventDefault();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-    document.addEventListener('keydown', closeOnEscape);
-    return () => document.removeEventListener('keydown', closeOnEscape);
+
+    document.addEventListener('keydown', trapFocusAndCloseOnEscape);
+    return () => {
+      document.removeEventListener('keydown', trapFocusAndCloseOnEscape);
+      triggerRef.current?.focus();
+    };
   }, [open]);
 
   const form = (
@@ -160,6 +191,7 @@ export default function CatalogFilters({
   return (
     <>
       <button
+        ref={triggerRef}
         className="button-secondary w-full sm:hidden"
         type="button"
         onClick={() => setOpen(true)}
@@ -179,8 +211,11 @@ export default function CatalogFilters({
             className="absolute inset-0 bg-brand-ink/45"
             onClick={() => setOpen(false)}
             aria-label="Đóng bộ lọc"
+            aria-hidden="true"
+            tabIndex={-1}
           />
           <section
+            ref={dialogRef}
             className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-3xl bg-brand-cream p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-soft"
             role="dialog"
             aria-modal="true"

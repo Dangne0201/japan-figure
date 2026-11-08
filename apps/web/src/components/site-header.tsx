@@ -40,7 +40,7 @@ export default function SiteHeader({ initialQuery = '' }: { initialQuery?: strin
           <Link className="whitespace-nowrap text-sm font-semibold text-brand-plum" href="/cart">
             Giỏ hàng
           </Link>
-          <Link className="whitespace-nowrap text-sm font-semibold text-brand-plum" href="/login">
+          <Link className="whitespace-nowrap text-sm font-semibold text-brand-plum" href="/account">
             Tài khoản
           </Link>
         </div>

@@ -2,6 +2,26 @@
 
 Append one entry per decision: date, decision, reason, alternatives considered.
 
+## 2026-11-08 — Support keyboard navigation throughout the storefront
+
+- Add a global skip link to the main landmark, visible focus indicators, and reduced-motion handling. Keep page headers outside the main landmark so the skip action actually bypasses navigation.
+- Keep search suggestions within the combobox keyboard model: arrow keys move the active option, Enter selects it, and Escape closes the list. Trap focus in the mobile filter dialog, close it on Escape, and restore focus to its trigger.
+- Alternatives considered: rely only on native tab order or add bespoke keyboard handlers to every control. Prefer native links/forms for ordinary controls and add custom key handling only for the combobox and modal.
+
+## 2026-11-08 — Do not cache Next.js chunks in the service worker
+
+- Keep the service worker cache limited to offline/static assets and icons; let the browser and Next.js manage framework chunks.
+- Next.js development chunk URLs can remain stable while their contents change. Caching them by URL caused the client to load stale JavaScript and report a hydration mismatch.
+- Bump the static cache version so activation removes entries cached by the previous worker.
+- Alternatives considered: preserve stale-while-revalidate for chunks or disable the PWA in development. Avoid caching Next.js internals in all environments so production updates also cannot serve outdated bundles.
+
+## 2026-11-08 — Reduce chatbot prompt size without tightening relevance
+
+- Return at most four knowledge chunks (the 50-case retrieval evaluation still passes 50/50) and keep the latest three conversation exchanges. Exclude product records unless a question refers to a product or asks to browse/recommend products.
+- Keep the relevance threshold at 0.42: raising it to 0.55 reduced retrieval coverage to 45/50, including valid catalog and care questions.
+- Cap Ollama output at 128 tokens. Keep the 3B model as the default because it passed the five-case answer evaluation, while the 1.5B model was faster but returned an overly generic privacy answer (4/5).
+- Alternatives considered: make the faster 1.5B model the default or raise the retrieval threshold. Keep the quality-first model and improve latency by reducing irrelevant prompt context instead.
+
 ## 2026-11-07 — Phase 5b implementation split
 
 - Split Phase 5b at the backend/API boundary because its persisted chat, streaming, user interface, admin, and evaluation scope is too large to implement and verify reliably as one change.

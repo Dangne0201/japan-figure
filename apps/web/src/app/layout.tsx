@@ -20,6 +20,9 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="vi">
       <body>
+        <a className="skip-link" href="#main-content">
+          Bỏ qua đến nội dung chính
+        </a>
         {children}
         <PwaRegistration />
       </body>

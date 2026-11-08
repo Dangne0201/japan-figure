@@ -10,10 +10,12 @@ export const metadata: Metadata = {
 
 export default function CheckoutRoute() {
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <>
       <SiteHeader />
-      <CheckoutPage />
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-brand-cream">
+        <CheckoutPage />
+      </main>
       <SiteFooter />
-    </main>
+    </>
   );
 }

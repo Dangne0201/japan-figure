@@ -67,24 +67,26 @@ export default async function ProductsPage({
   }
 
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <>
       <SiteHeader initialQuery={firstValue(values.q) ?? ''} />
-      {unavailable || !facets || !result ? (
-        <section className="page-shell py-16" role="alert">
-          <h1 className="text-3xl font-semibold">Danh mục chưa tải được</h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-brand-ink/70">
-            Không thể kết nối catalog. Hãy kiểm tra API/database đang hoạt động rồi tải lại trang.
-          </p>
-        </section>
-      ) : (
-        <CatalogListing
-          facets={facets}
-          result={result}
-          params={params}
-          selected={selectedFilters(values)}
-        />
-      )}
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-brand-cream">
+        {unavailable || !facets || !result ? (
+          <section className="page-shell py-16" role="alert">
+            <h1 className="text-3xl font-semibold">Danh mục chưa tải được</h1>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-brand-ink/70">
+              Không thể kết nối catalog. Hãy kiểm tra API/database đang hoạt động rồi tải lại trang.
+            </p>
+          </section>
+        ) : (
+          <CatalogListing
+            facets={facets}
+            result={result}
+            params={params}
+            selected={selectedFilters(values)}
+          />
+        )}
+      </main>
       <SiteFooter />
-    </main>
+    </>
   );
 }

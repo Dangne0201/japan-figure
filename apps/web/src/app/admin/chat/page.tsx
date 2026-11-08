@@ -9,10 +9,10 @@ export const metadata: Metadata = {
 
 export default function AdminChatPage() {
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <>
       <SiteHeader />
       <AdminChatConsole />
       <SiteFooter />
-    </main>
+    </>
   );
 }

@@ -37,7 +37,7 @@ describe('LlmProvider streaming', () => {
     const requestBody = JSON.parse(String(fetch.mock.calls[0]?.[1]?.body)) as {
       options?: { temperature?: number; num_predict?: number };
     };
-    expect(requestBody.options).toEqual({ temperature: 0.2, num_predict: 256 });
+    expect(requestBody.options).toEqual({ temperature: 0.2, num_predict: 128 });
   });
 
   it('keeps the configured request timeout when also cancelling on client disconnect', async () => {

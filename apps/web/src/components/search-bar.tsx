@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, KeyboardEvent, useEffect, useState } from 'react';
 
 interface Suggestion {
   slug: string;
@@ -16,7 +16,6 @@ export default function SearchBar({ initialQuery = '' }: { initialQuery?: string
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const [error, setError] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -65,12 +64,16 @@ export default function SearchBar({ initialQuery = '' }: { initialQuery?: string
   function handleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === 'ArrowDown' && items.length) {
       event.preventDefault();
-      setActive((current) => Math.min(current + 1, items.length - 1));
+      setOpen(true);
+      setActive((current) => (current + 1) % items.length);
     } else if (event.key === 'ArrowUp' && items.length) {
       event.preventDefault();
-      setActive((current) => Math.max(current - 1, 0));
+      setOpen(true);
+      setActive((current) => (current <= 0 ? items.length - 1 : current - 1));
     } else if (event.key === 'Escape') {
+      event.preventDefault();
       setOpen(false);
+      setActive(-1);
     }
   }
 
@@ -84,7 +87,6 @@ export default function SearchBar({ initialQuery = '' }: { initialQuery?: string
           ⌕
         </span>
         <input
-          ref={inputRef}
           id="catalog-search"
           name="q"
           type="search"
@@ -92,6 +94,7 @@ export default function SearchBar({ initialQuery = '' }: { initialQuery?: string
           onChange={(event) => {
             setQuery(event.target.value);
             setActive(-1);
+            setOpen(false);
           }}
           onFocus={() => items.length && setOpen(true)}
           onKeyDown={handleKeyDown}
@@ -121,16 +124,17 @@ export default function SearchBar({ initialQuery = '' }: { initialQuery?: string
           className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-brand-plum/10 bg-white p-2 shadow-soft"
         >
           {items.map((item, index) => (
-            <li
-              key={item.slug}
-              id={`catalog-suggestion-${index}`}
-              role="option"
-              aria-selected={index === active}
-            >
+            <li key={item.slug} role="presentation">
               <Link
                 href={`/products/${item.slug}`}
+                id={`catalog-suggestion-${index}`}
+                role="option"
+                tabIndex={-1}
+                aria-selected={index === active}
+                onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActive(index)}
                 onClick={() => setOpen(false)}
-                className={`block rounded-xl px-3 py-2 text-sm hover:bg-brand-cream ${index === active ? 'bg-brand-cream' : ''}`}
+                className={`block cursor-pointer rounded-xl px-3 py-2 text-sm hover:bg-brand-cream ${index === active ? 'bg-brand-cream' : ''}`}
               >
                 <span className="block font-semibold">{item.characterName}</span>
                 <span className="block text-xs text-brand-ink/60">{item.name}</span>

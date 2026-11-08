@@ -60,7 +60,7 @@ export default function OrdersPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-brand-cream">
       <section className="page-shell py-8 sm:py-12">
         <h1 className="text-3xl font-semibold">Đơn hàng của tôi</h1>
         <p className="mt-2 text-sm text-brand-ink/70">

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'japan-figure-static-v1';
+const CACHE_NAME = 'japan-figure-static-v2';
 const STATIC_ASSETS = ['/offline.html', '/icons/figure-flower.svg'];
 
 self.addEventListener('install', (event) => {
@@ -27,7 +27,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
   if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return;
 
-  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/icons/')) {
+  if (url.pathname.startsWith('/icons/')) {
     event.respondWith(
       caches.match(request).then(
         (cached) =>

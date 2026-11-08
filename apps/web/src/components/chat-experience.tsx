@@ -63,6 +63,7 @@ export default function ChatExperience() {
   const [content, setContent] = useState('');
   const [pending, setPending] = useState(false);
   const [sending, setSending] = useState(false);
+  const [chatStatus, setChatStatus] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const tailRef = useRef<HTMLDivElement>(null);
@@ -196,6 +197,7 @@ export default function ChatExperience() {
     setContent('');
     setError('');
     setNotice('');
+    setChatStatus('Đang tìm trong tài liệu cửa hàng…');
     setSending(true);
     setMessages((current) => [
       ...current,
@@ -235,6 +237,7 @@ export default function ChatExperience() {
       let serverError = '';
       for await (const event of readServerSentEvents(response.body)) {
         if (event.event === 'sources' && Array.isArray(event.data)) {
+          setChatStatus('Đang tổng hợp câu trả lời từ nguồn phù hợp…');
           setMessages((current) =>
             current.map((message) =>
               message.id === temporaryAssistantId
@@ -245,6 +248,7 @@ export default function ChatExperience() {
         } else if (event.event === 'token') {
           const token = (event.data as { text?: unknown }).text;
           if (typeof token === 'string') {
+            setChatStatus('');
             setMessages((current) =>
               current.map((message) =>
                 message.id === temporaryAssistantId
@@ -272,6 +276,7 @@ export default function ChatExperience() {
         console.error('Unable to reload conversation after chat failure.', reloadError);
       }
     } finally {
+      setChatStatus('');
       setSending(false);
     }
   }
@@ -429,7 +434,7 @@ export default function ChatExperience() {
                   {message.role === 'USER' ? 'Bạn' : 'Sakura'}
                 </p>
                 <p className="whitespace-pre-wrap break-words">
-                  {message.content || (sending ? 'Đang tìm câu trả lời…' : '')}
+                  {message.content || (sending ? chatStatus || 'Đang tìm câu trả lời…' : '')}
                 </p>
                 {message.role === 'ASSISTANT' && message.sources?.length ? (
                   <div className="mt-3 border-t border-brand-plum/10 pt-3">

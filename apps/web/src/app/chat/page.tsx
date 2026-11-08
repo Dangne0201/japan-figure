@@ -10,19 +10,21 @@ export const metadata: Metadata = {
 
 export default function ChatPage() {
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <>
       <SiteHeader />
-      <section className="page-shell py-6 sm:py-10">
-        <div className="mb-5">
-          <p className="text-sm font-semibold text-brand-plum">Trợ lý cửa hàng</p>
-          <h1 className="mt-1 text-3xl font-semibold">Tư vấn figure</h1>
-          <p className="mt-2 text-sm text-brand-ink/70">
-            Câu trả lời chỉ dựa trên dữ liệu cửa hàng; nguồn tham khảo sẽ hiển thị bên dưới.
-          </p>
-        </div>
-        <ChatExperience />
-      </section>
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-brand-cream">
+        <section className="page-shell py-6 sm:py-10">
+          <div className="mb-5">
+            <p className="text-sm font-semibold text-brand-plum">Trợ lý cửa hàng</p>
+            <h1 className="mt-1 text-3xl font-semibold">Tư vấn figure</h1>
+            <p className="mt-2 text-sm text-brand-ink/70">
+              Câu trả lời chỉ dựa trên dữ liệu cửa hàng; nguồn tham khảo sẽ hiển thị bên dưới.
+            </p>
+          </div>
+          <ChatExperience />
+        </section>
+      </main>
       <SiteFooter />
-    </main>
+    </>
   );
 }

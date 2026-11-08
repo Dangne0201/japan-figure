@@ -6,7 +6,7 @@ export default function AccountWishlistPage() {
   return (
     <>
       <SiteHeader />
-      <main className="min-h-screen bg-brand-cream">
+      <main id="main-content" tabIndex={-1} className="min-h-screen bg-brand-cream">
         <WishlistPage />
       </main>
       <SiteFooter />

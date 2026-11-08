@@ -362,11 +362,15 @@ export default function AdminDashboard() {
   }
 
   if (access === 'loading') {
-    return <main className="page-shell py-12">Đang kiểm tra quyền quản trị…</main>;
+    return (
+      <main id="main-content" tabIndex={-1} className="page-shell py-12">
+        Đang kiểm tra quyền quản trị…
+      </main>
+    );
   }
   if (access === 'guest') {
     return (
-      <main className="page-shell py-12">
+      <main id="main-content" tabIndex={-1} className="page-shell py-12">
         <h1 className="text-2xl font-semibold">Đăng nhập để quản trị</h1>
         <Link className="button-primary mt-4 inline-flex" href="/login">
           Đăng nhập
@@ -376,7 +380,7 @@ export default function AdminDashboard() {
   }
   if (access === 'forbidden') {
     return (
-      <main className="page-shell py-12">
+      <main id="main-content" tabIndex={-1} className="page-shell py-12">
         <h1 className="text-2xl font-semibold">Tài khoản không có quyền quản trị</h1>
         <p className="mt-2 text-sm text-brand-ink/70">Khu vực này chỉ dành cho tài khoản ADMIN.</p>
         <Link className="button-secondary mt-4 inline-flex" href="/">
@@ -387,7 +391,7 @@ export default function AdminDashboard() {
   }
   if (access === 'error') {
     return (
-      <main className="page-shell py-12">
+      <main id="main-content" tabIndex={-1} className="page-shell py-12">
         <h1 className="text-2xl font-semibold">Không tải được trang quản trị</h1>
         <p className="mt-3 text-red-900" role="alert">
           {error}
@@ -397,7 +401,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <main className="min-h-screen bg-brand-cream">
+    <main id="main-content" tabIndex={-1} className="min-h-screen bg-brand-cream">
       <section className="page-shell py-8 sm:py-12">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>

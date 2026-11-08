@@ -33,7 +33,7 @@ const envSchema = z
     GEMINI_API_KEY: z.string().optional(),
     GEMINI_CHAT_MODEL: z.string().default('gemini-2.5-flash'),
     KNOWLEDGE_RELEVANCE_THRESHOLD: z.coerce.number().min(0).max(1).default(0.42),
-    KNOWLEDGE_TOP_K: z.coerce.number().int().min(1).max(20).default(5),
+    KNOWLEDGE_TOP_K: z.coerce.number().int().min(1).max(20).default(4),
     PRODUCT_UPLOAD_DIR: z.string().min(1).default('/app/product-uploads'),
   })
   .superRefine((config, context) => {
