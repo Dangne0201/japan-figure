@@ -84,18 +84,25 @@ Phase 6 Part 2 engineering and local verification are complete. The combined Pha
 - Final unit verification passed: API 23 suites/86 tests with 39.99% line coverage (all configured floors met), web 6 tests, lint, formatting, API/web builds, Prisma validation, and Compose config validation. The authenticated API e2e suite passed 3/3.
 - The final production Docker API image reached healthy status and returned `/api/health` with database, Redis, and Ollama up. The first production web smoke test exposed Next.js binding only to the container hostname; set `HOSTNAME=0.0.0.0`, rebuilt the image, and verified its healthcheck plus HTTP 200 on `/`.
 - Verified `/api/metrics` through Nginx and checked the home/chat pages at 390px in the integrated browser; neither had horizontal overflow. This was a local development-server check, not Lighthouse or a physical-phone test.
-- Parsed `scripts/reset-demo.ps1` without executing it because it destroys local database records. A limited secret hygiene check found no tracked `.env` and no common private-key/provider-token patterns in reachable Git history.
+- Fixed the CI setup ordering by generating Prisma Client before migrations and seed. The isolated production-style reset rehearsal also passed migrations, seed, and re-indexing.
+- Expanded the storefront e2e suite to four tests, including checkout, payment-event idempotency, and order/chat ownership. Test cleanup now releases order reservations before deleting its test orders; a database invariant check confirmed no remaining stock-reservation drift.
+- Added a five-case chatbot answer-quality smoke evaluator covering shipping thresholds, voucher terms, safe figure care, unsupported questions, and privacy/injection attempts. Runtime Ollama evaluation passed 5/5 after refining the answer instructions and making the shipping policy distinction more explicit; the phrase-based rubric is intentionally not a semantic safety guarantee.
+- Re-indexed the updated 14-document knowledge corpus and all 50 published products. The isolated reset rehearsal restored 50 catalog products, confirmed 14 indexed documents and 50 indexed products, returned healthy database/Redis/Ollama checks, and was then removed with only its project-scoped volumes.
+- Built and tested the production Compose images. That check exposed that the production worker did not receive `COOKIE_SECURE`; added the missing environment variable and verified all seven production-style services healthy.
+- Mobile Lighthouse against the production web image: Performance 98, Accessibility 100, Best Practices 100, SEO 100; LCP 1.1 s, CLS 0, TBT 150 ms, and no console or color-contrast findings. Fixed the search combobox ARIA role, accessible link names, small-text contrast, and added a self-made SVG app icon. This local HTTP audit used production images but does not validate TLS or a physical phone.
+- Final local checks: API 24 suites/90 tests with configured coverage floors met, web 6/6 tests, API/web builds, lint, formatting, Compose configuration, and API e2e 4/4.
+- A limited secret hygiene check found no tracked `.env` and no common private-key/provider-token patterns in reachable Git history.
 
 ## Known issues and limits
 
 - The owner should still test the LAN storefront on a physical phone; the browser-width check used the development server and does not replace device testing.
-- Model quality results cover one short grounded question only; expand the answer-quality evaluation before relying on either model for general customer support.
+- Answer evaluation covers five representative cases with a deterministic phrase/source rubric; it is not a semantic quality score or a prompt-injection guarantee. Broaden cases and manually review model changes before relying on chatbot output.
 - Catalog prices, stock, JAN-like identifiers, and release dates are fictional demo data. The production dependency audit is clear; the complete development audit still reports low/moderate transitive advisories.
 - The repository does not provision default admin credentials. The owner must set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the ignored `.env` and run `docker compose --profile tools run --rm seed`.
-- Runtime language checks cover only a small number of grounded care-policy questions; evaluate a representative Vietnamese FAQ set before relying on general chatbot answers. The retrieval harness does not score answer quality or prove resistance to prompt injection.
-- Lighthouse was not run and no phone screenshot was captured. A historical chatbot answer contains one foreign word; it predates the updated prompt, so re-test with a fresh question.
-- The verified work was fast-forwarded directly to `main` at `fd5e1e2` without a PR or force-push. Check CI and repository status after publication.
+- Lighthouse results are local and hardware-dependent; HTTPS/TLS and physical-phone behavior still need owner verification. Historical single-run quality results are not guarantees for general model behavior.
+- Development dependencies still have low/moderate transitive advisories; the production dependency audit was clean at the previous release check.
+- The verified work was fast-forwarded directly to `main` at `fd5e1e2` without a PR or force-push. Publish this follow-up directly to `main` and verify its CI run.
 
 ## Next step
 
-Next: review the published `main` build/CI status. Separately, complete the owner phone check, optional Lighthouse run, and (only against disposable data) reset-script rehearsal.
+Next: publish the verified follow-up directly to `main` and confirm CI. The owner should then check the storefront on a physical phone and review the local HTTP/TLS limitations noted above.

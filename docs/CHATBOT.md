@@ -17,6 +17,22 @@ docker compose run --rm --entrypoint node worker apps/api/dist/knowledge/reindex
 
 Run this after changing knowledge documents, seeding or migrating the catalog, or recovering from a failed indexing job. The worker container must be able to reach PostgreSQL, Redis, and Ollama. Do not remove the PostgreSQL volume to re-index.
 
+## Evaluation
+
+Run the retrieval-only evaluation to check that each question finds its expected source:
+
+```powershell
+docker compose exec -T api npm run chatbot:evaluate --workspace apps/api
+```
+
+Run the answer-quality smoke evaluation after indexing the current knowledge corpus and confirming the configured chat provider is available:
+
+```powershell
+docker compose exec -T api npm run chatbot:evaluate-answers --workspace apps/api
+```
+
+The answer evaluation creates a temporary local account, asks five representative grounded, off-topic, and privacy/injection questions through the same chat service used by the API, then deletes the test conversation and account. Its deterministic rubric checks expected citations, required factual phrases, forbidden claims, and unsupported-question refusals. It does not understand paraphrases beyond the configured phrase alternatives, so review the printed answers and do not treat the pass rate as a semantic quality or prompt-injection guarantee. Chat generation uses the configured local provider and may take several minutes on CPU.
+
 ## Retrieval behavior
 
 Search obtains an embedding for the user query, combines cosine vector relevance with normalized PostgreSQL trigram/substring relevance, filters below `KNOWLEDGE_RELEVANCE_THRESHOLD`, sorts by a weighted score, and returns at most `KNOWLEDGE_TOP_K` chunks. Each result includes its document/product source, chunk index, and metadata for citations. Defaults are threshold `0.42` and top-k `5`; adjust only after validating representative Vietnamese questions.

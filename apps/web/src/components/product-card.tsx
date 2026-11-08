@@ -11,7 +11,6 @@ export default function ProductCard({ product }: { product: Product }) {
       <Link
         className="block overflow-hidden rounded-3xl border border-brand-plum/10 bg-white"
         href={`/products/${product.slug}`}
-        aria-label={`Xem ${product.name}`}
       >
         <div className="relative aspect-[4/5] overflow-hidden bg-brand-rose/20">
           <Image
@@ -42,13 +41,13 @@ export default function ProductCard({ product }: { product: Product }) {
         <p className="mt-2 text-sm font-bold text-brand-ink">
           {formatVnd(product.salePriceVnd ?? product.priceVnd)}
           {product.salePriceVnd && (
-            <span className="ml-2 text-xs font-normal text-brand-ink/50 line-through">
+            <span className="ml-2 text-xs font-normal text-brand-ink/75 line-through">
               {formatVnd(product.priceVnd)}
             </span>
           )}
         </p>
         {product.isPreorder && product.preorderDepositVnd && (
-          <p className="mt-1 text-xs text-brand-ink/65">
+          <p className="mt-1 text-xs text-brand-ink/75">
             Cọc dự kiến {formatVnd(product.preorderDepositVnd)}
           </p>
         )}

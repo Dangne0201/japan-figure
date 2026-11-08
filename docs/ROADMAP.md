@@ -41,7 +41,7 @@ Work is phase-based. The storefront and core buying experience take priority; ch
 
 ## Phase 5a — Chatbot knowledge and retrieval
 
-- Vietnamese policy and shop knowledge documents match implemented behavior; the corpus is being expanded with detailed catalog, checkout, order, review, wishlist, and privacy guidance in Phase 6.
+- Vietnamese policy and shop knowledge documents match implemented behavior, including detailed catalog, checkout, order, review, wishlist, and privacy guidance.
 - Document/product ingestion, embeddings, pgvector storage, source metadata, hybrid retrieval, relevance threshold, and re-index jobs work locally.
 - Ollama is the default provider with configurable Gemini fallback; provider errors and benchmark limitations are documented.
 - Chunking and retrieval tests pass.
@@ -57,5 +57,6 @@ Work is phase-based. The storefront and core buying experience take priority; ch
 ## Phase 6 — Polish
 
 - **Part 1 complete:** expanded and re-indexed chatbot knowledge corpus; reviewed security controls; fixed cookie-authenticated CSRF and enforced HTTPS/secure cookies in production; recorded test and coverage baseline.
-- **Part 2 in progress:** Prisma 7.10.1 and pg adapter upgrade clears the production dependency audit; three API e2e cases run in CI; bounded catalog Redis caching, a series trigram index, Prometheus metrics, reset-demo confirmation workflow, and README/CONTRIBUTING/docs index are implemented. Remaining: Lighthouse/mobile validation, production Docker-image smoke test, coverage report/threshold decision, secrets/history and repository metadata checks, and release readiness.
-- Completion also requires: no secrets in git history; license, disclaimer, image policy, and repository metadata verified.
+- **Part 2 complete:** Prisma 7.10.1 and the pg adapter clear the production dependency audit; CI runs migrations, seeds the database, lints, tests, builds, runs API e2e checks, and builds Docker images. API e2e covers catalog, authentication, chat privacy, checkout, payment idempotency, and order ownership. Bounded catalog Redis caching, a series trigram index, Prometheus metrics, reset-demo confirmation workflow, coverage artifacts/floors, and portfolio documentation are implemented and locally verified.
+- Engineering completion is published on `main`. Physical-phone verification and any destructive reset rehearsal on disposable data remain operator checks; Lighthouse is an optional performance follow-up.
+- Release hygiene is complete: no tracked `.env` or common secret patterns were found in reachable Git history; license, educational disclaimer, placeholder-image policy, and repository metadata are documented and verified.

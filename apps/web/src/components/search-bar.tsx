@@ -97,9 +97,11 @@ export default function SearchBar({ initialQuery = '' }: { initialQuery?: string
           onKeyDown={handleKeyDown}
           autoComplete="off"
           placeholder="Tìm nhân vật, series..."
+          role="combobox"
           aria-autocomplete="list"
-          aria-controls="catalog-suggestions"
-          aria-expanded={open}
+          aria-controls={open && items.length > 0 ? 'catalog-suggestions' : undefined}
+          aria-expanded={open && items.length > 0}
+          aria-activedescendant={open && active >= 0 ? `catalog-suggestion-${active}` : undefined}
           className="min-w-0 flex-1 bg-transparent py-2 text-sm outline-none placeholder:text-brand-ink/45"
         />
         <button className="text-sm font-semibold text-brand-plum" type="submit">
@@ -119,7 +121,12 @@ export default function SearchBar({ initialQuery = '' }: { initialQuery?: string
           className="absolute left-0 right-0 top-full z-30 mt-2 overflow-hidden rounded-2xl border border-brand-plum/10 bg-white p-2 shadow-soft"
         >
           {items.map((item, index) => (
-            <li key={item.slug} role="option" aria-selected={index === active}>
+            <li
+              key={item.slug}
+              id={`catalog-suggestion-${index}`}
+              role="option"
+              aria-selected={index === active}
+            >
               <Link
                 href={`/products/${item.slug}`}
                 onClick={() => setOpen(false)}

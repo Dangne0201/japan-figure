@@ -21,7 +21,7 @@ A learning project simulating a Vietnamese anime-figure e-commerce shop. The int
 
 ## Project status
 
-The repository is completing Phase 6 hardening and portfolio polish. See the [documentation index](docs/README.md), [progress](docs/PROGRESS.md), [decisions](docs/DECISIONS.md), [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA_MODEL.md), [roadmap](docs/ROADMAP.md), [chatbot guide](docs/CHATBOT.md), and [security review](docs/SECURITY.md).
+The Phase 1–6 implementation is published on `main`; see [progress](docs/PROGRESS.md) for verified scope and remaining manual checks. See the [documentation index](docs/README.md), [decisions](docs/DECISIONS.md), [architecture](docs/ARCHITECTURE.md), [data model](docs/DATA_MODEL.md), [roadmap](docs/ROADMAP.md), [chatbot guide](docs/CHATBOT.md), and [security review](docs/SECURITY.md).
 
 ## Technology stack
 
@@ -47,6 +47,7 @@ For faster file watching and dependency installation, place the repository in th
 - Run unit tests, lint, and production builds with `npm test`, `npm run lint`, and `npm run build`.
 - With the Compose database, Redis, and catalog seeded, run the API end-to-end checks with `docker compose run --rm --no-deps api npm run test:e2e --workspace apps/api`. CI provisions isolated PostgreSQL/Redis services, applies migrations, seeds the catalog, and runs these checks.
 - The Prometheus text endpoint is available at `/api/metrics`; it exports bounded method/status request counts, request-duration totals, process uptime, and resident memory.
+- Evaluate chatbot retrieval and answer quality with the commands in [docs/CHATBOT.md](docs/CHATBOT.md); answer evaluation uses the configured local LLM and checks a small deterministic rubric.
 - To wipe demo users, orders, and database records, run `.\scripts\reset-demo.ps1` in PowerShell and type `RESET` at the confirmation prompt. The script re-applies migrations, seeds catalog/admin values from `.env`, re-indexes knowledge (Ollama must be reachable), and restarts Compose. It does not remove uploaded images or Mailpit messages. **This is destructive; never use it for data you need to keep.**
 
 The web app is exposed on all host interfaces at port 8081 by default to avoid a known local project port collision. For phone testing, use the laptop's LAN IP on the same trusted private Wi-Fi and allow only the chosen web port through Windows Firewall on the Private profile. Local HTTP is not encrypted; do not use it on a public or untrusted network. API, database, and Redis ports are not published to the host/LAN. Mailpit UI is bound to localhost.

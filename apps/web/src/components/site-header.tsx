@@ -5,11 +5,7 @@ export default function SiteHeader({ initialQuery = '' }: { initialQuery?: strin
   return (
     <header className="border-b border-brand-plum/10 bg-brand-cream">
       <div className="page-shell flex min-h-20 flex-wrap items-center justify-between gap-x-6 gap-y-3 py-3">
-        <Link
-          className="flex shrink-0 items-center gap-3"
-          href="/"
-          aria-label="Japan Figure trang chủ"
-        >
+        <Link className="flex shrink-0 items-center gap-3" href="/">
           <span className="grid size-11 place-items-center rounded-2xl bg-brand-plum text-xl text-white">
             花
           </span>
@@ -49,7 +45,7 @@ export default function SiteHeader({ initialQuery = '' }: { initialQuery?: strin
           </Link>
         </div>
       </div>
-      <div className="border-t border-brand-plum/5 bg-white/60 py-1 text-center text-[11px] text-brand-ink/60">
+      <div className="border-t border-brand-plum/5 bg-white/60 py-1 text-center text-[11px] text-brand-ink/75">
         Dự án mô phỏng phục vụ học tập · Không nhận giao dịch thật
       </div>
     </header>

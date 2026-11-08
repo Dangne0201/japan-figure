@@ -1,5 +1,9 @@
 # Phí và thời gian giao hàng mô phỏng
 
+## Điều kiện miễn phí giao hàng
+
+Theo chính sách chung, phí giao hàng tự động được miễn khi tiền hàng sau giảm giá đạt ít nhất 1.500.000 ₫. Đây không phải điều kiện riêng của một mã voucher. Nếu áp dụng mã miễn phí giao hàng hợp lệ, đơn có thể được miễn theo điều kiện của mã đó; mã `FREESHIP` trong dữ liệu seed yêu cầu tiền hàng tối thiểu 300.000 ₫. Hai ngưỡng này thuộc hai cách áp dụng khác nhau, không thay thế cho nhau.
+
 ## Cách tính phí
 
 Japan Figure là mô phỏng bán hàng chạy cục bộ. Khi thanh toán, hệ thống tính phí giao hàng dựa trên khu vực tỉnh/thành trong địa chỉ nhận và tổng khối lượng các phiên bản sản phẩm trong giỏ. Khối lượng đóng gói được mô phỏng từ dữ liệu khối lượng của từng phiên bản. Hệ thống chỉ nhận kiện từ 1 g đến 30.000 g; mỗi 500 g vượt quá 1.000 g đầu tiên làm tăng một bậc phí.
@@ -20,7 +24,7 @@ Ba lựa chọn hiển thị là GHN, GHTK và Viettel Post. Mỗi mức dưới
 
 Tỉnh/thành trong địa chỉ chọn nhóm khu vực. GHN, GHTK và Viettel Post chỉ là nhãn lựa chọn để minh họa; website không gửi yêu cầu giao hàng, dữ liệu người nhận hoặc đơn hàng tới các hãng vận chuyển.
 
-Phí giao hàng được miễn khi tiền hàng sau giảm giá đạt ít nhất 1.500.000 ₫ hoặc khi mã miễn phí giao hàng hợp lệ được áp dụng. Mã `FREESHIP` trong dữ liệu seed có mức đơn tối thiểu 300.000 ₫. Các mức phí và thời gian dự kiến là giả lập, không phải báo giá hay cam kết giao hàng thực tế.
+Các mức phí và thời gian dự kiến là giả lập, không phải báo giá hay cam kết giao hàng thực tế.
 
 ## Theo dõi đơn
 

@@ -144,7 +144,7 @@ export default async function HomePage() {
                   {['✿', '✧', '◇', '♡'][index]}
                 </span>
                 <span className="mt-4 block font-semibold">{name}</span>
-                <span className="mt-1 block text-xs leading-5 text-brand-ink/60">
+                <span className="mt-1 block text-xs leading-5 text-brand-ink/75">
                   {category.description}
                 </span>
               </Link>

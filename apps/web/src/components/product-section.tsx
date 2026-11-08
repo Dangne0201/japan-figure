@@ -26,7 +26,7 @@ export default function ProductSection({
           >
             {title}
           </h2>
-          <p className="mt-2 text-sm text-brand-ink/65">{description}</p>
+          <p className="mt-2 text-sm text-brand-ink/75">{description}</p>
         </div>
         <Link
           className="hidden shrink-0 text-sm font-semibold text-brand-plum hover:underline sm:block"
