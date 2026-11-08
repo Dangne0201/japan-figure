@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 6 Part 2 engineering and local verification are complete on `phase/6-polish`; manual owner checks and publication approval remain. Phase 5b implementation is still uncommitted in the same worktree, so review the combined changes before publishing.
+Phase 6 Part 2 engineering and local verification are complete. The combined Phase 5b/6 changes are committed as `3fd2a6e` and pushed to `origin/phase/6-polish`; pull request creation is pending GitHub authentication.
 
 ## Completed
 
@@ -94,8 +94,8 @@ Phase 6 Part 2 engineering and local verification are complete on `phase/6-polis
 - The repository does not provision default admin credentials. The owner must set `ADMIN_EMAIL` and `ADMIN_PASSWORD` in the ignored `.env` and run `docker compose --profile tools run --rm seed`.
 - Runtime language checks cover only a small number of grounded care-policy questions; evaluate a representative Vietnamese FAQ set before relying on general chatbot answers. The retrieval harness does not score answer quality or prove resistance to prompt injection.
 - Lighthouse was not run and no phone screenshot was captured. A historical chatbot answer contains one foreign word; it predates the updated prompt, so re-test with a fresh question.
-- Release metadata/tag are intentionally pending owner approval; the worktree contains uncommitted Phase 5b and Phase 6 changes together. Do not commit, push, tag, or open a PR without reviewing and approving that combined scope.
+- The project branch is pushed, but `main` has not changed. GitHub CLI and the browser are not authenticated, so a PR cannot be opened in this session. Do not merge or tag until the PR is reviewed and CI passes.
 
 ## Next step
 
-Next: owner phone check, optional Lighthouse run, and (only against disposable data) an end-to-end reset-script rehearsal. Review the combined Phase 5b/Phase 6 worktree and approve publication before setting release metadata or creating a PR/tag.
+Next: authenticate GitHub CLI and open a PR from `phase/6-polish` to `main`; review the combined Phase 5b/Phase 6 scope and CI before merge. Separately, complete the owner phone check, optional Lighthouse run, and (only against disposable data) reset-script rehearsal.
