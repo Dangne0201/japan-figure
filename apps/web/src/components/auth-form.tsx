@@ -33,7 +33,15 @@ async function getErrorMessage(response: Response): Promise<string> {
   return 'Đã xảy ra lỗi. Vui lòng thử lại.';
 }
 
-export default function AuthForm({ mode, token }: { mode: AuthMode; token?: string | undefined }) {
+export default function AuthForm({
+  mode,
+  token,
+  redirectTo = '/account',
+}: {
+  mode: AuthMode;
+  token?: string | undefined;
+  redirectTo?: string;
+}) {
   const router = useRouter();
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -65,7 +73,7 @@ export default function AuthForm({ mode, token }: { mode: AuthMode; token?: stri
       }
 
       if (mode === 'login') {
-        router.push('/account');
+        router.push(redirectTo);
         return;
       }
 

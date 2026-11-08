@@ -29,9 +29,9 @@ export interface ProductCard {
 }
 
 export interface CatalogFacets {
-  brands: Array<{ slug: string; name: string }>;
-  series: Array<{ slug: string; name: string }>;
-  categories: Array<{ slug: string; name: string }>;
+  brands: Array<{ slug: string; name: string; productCount: number }>;
+  series: Array<{ slug: string; name: string; productCount: number }>;
+  categories: Array<{ slug: string; name: string; productCount: number }>;
   scales: string[];
 }
 

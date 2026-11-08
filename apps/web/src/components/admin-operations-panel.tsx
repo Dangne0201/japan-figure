@@ -57,6 +57,14 @@ interface AdminBanner {
   isActive: boolean;
 }
 
+function bannerStatus(banner: AdminBanner): string {
+  if (!banner.isActive) return 'Đang tắt';
+  const now = Date.now();
+  if (new Date(banner.startsAt).getTime() > now) return 'Sắp diễn ra';
+  if (new Date(banner.endsAt).getTime() <= now) return 'Đã hết hạn';
+  return 'Đang hiển thị';
+}
+
 interface AdminReview {
   id: string;
   status: string;
@@ -680,7 +688,7 @@ export default function AdminOperationsPanel() {
                       <h3 className="font-semibold">{banner.title}</h3>
                       <p className="mt-1 break-all text-sm text-brand-ink/70">{banner.imageUrl}</p>
                       <p className="mt-1 text-xs text-brand-ink/60">
-                        {banner.isActive ? 'Đang bật' : 'Đang tắt'} · {dateLabel(banner.startsAt)} –{' '}
+                        {bannerStatus(banner)} · {dateLabel(banner.startsAt)} –{' '}
                         {dateLabel(banner.endsAt)}
                       </p>
                     </div>

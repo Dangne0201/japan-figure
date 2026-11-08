@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import ProductCard from '../../../components/product-card';
@@ -8,6 +7,7 @@ import SiteHeader from '../../../components/site-header';
 import { formatVnd, getProduct, productImageUrl } from '../../../lib/catalog';
 import AddToCartButton from '../../../components/add-to-cart-button';
 import WishlistButton from '../../../components/wishlist-button';
+import ProductGallery from '../../../components/product-gallery';
 
 export const dynamic = 'force-dynamic';
 
@@ -85,17 +85,11 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
             <span aria-current="page">{product.characterName}</span>
           </nav>
           <div className="grid gap-8 md:grid-cols-2 md:gap-12">
-            <div className="relative mx-auto aspect-[4/5] w-full max-w-xl overflow-hidden rounded-[2rem] border border-brand-plum/10 bg-white">
-              <Image
-                src={productImageUrl(product.slug)}
-                alt={image?.altText ?? `Hình minh họa ${product.name}`}
-                fill
-                priority
-                unoptimized
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover"
-              />
-            </div>
+            <ProductGallery
+              slug={product.slug}
+              primaryUrl={productImageUrl(product.slug)}
+              alt={image?.altText ?? `Hình minh họa ${product.name}`}
+            />
             <section>
               <p className="text-sm font-semibold text-brand-plum">{product.series.name}</p>
               <h1 className="mt-2 text-3xl font-semibold leading-tight sm:text-4xl">
@@ -114,6 +108,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 <AddToCartButton
                   disabled={product.stock === 0}
                   variantId={product.variants.find((variant) => variant.stockAvailable > 0)?.id}
+                  showQuantity
+                  maxQuantity={Math.min(
+                    99,
+                    product.variants.find((variant) => variant.stockAvailable > 0)
+                      ?.stockAvailable ?? 1,
+                  )}
+                  buyNow
                 />
               ) : null}
               <WishlistButton productSlug={product.slug} />
@@ -165,9 +166,15 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 </p>
               )}
               <p className="mt-5 text-xs leading-5 text-brand-ink/55">
-                Hình ảnh là placeholder tự tạo. Giá, ngày phát hành và tồn kho trong demo không đại
-                diện cho thông tin bán hàng thật.
+                Hình ảnh là placeholder tự tạo hoặc ảnh local do chủ dự án cung cấp. Giá, ngày phát
+                hành và tồn kho trong demo không đại diện cho thông tin bán hàng thật.
               </p>
+              <Link
+                className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-brand-plum underline"
+                href="/help"
+              >
+                Xem hướng dẫn mua hàng và câu hỏi thường gặp
+              </Link>
             </section>
           </div>
         </div>

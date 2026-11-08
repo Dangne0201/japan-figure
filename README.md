@@ -87,7 +87,7 @@ For faster installs and file watching, keep the repository inside the WSL2 Linux
 
 ## Local images
 
-Only self-made/generated placeholder images are committed under `apps/web/public/products/`; regenerate them with `npm run generate:placeholders`. Locally supplied images override admin uploads and placeholders from the gitignored `local-images/` directory by matching product slug and `.webp` extension, for example `local-images/frieren-prize-figure.webp`. Admin uploads accept WebP files up to 5 MiB and persist in the untracked `product_uploads` Docker volume. Keep local override filenames aligned with product slugs. Missing images fall back to the generic generated SVG. Do not commit copyrighted figure/anime images.
+Only self-made/generated placeholder images are committed under `apps/web/public/products/`; regenerate them with `npm run generate:placeholders`. Locally supplied images override admin uploads and placeholders from the gitignored `local-images/` directory by matching product slug and `.webp` extension, for example `local-images/frieren-prize-figure.webp`. Optional local gallery images use sequential names such as `local-images/frieren-prize-figure-2.webp` through `-5.webp`; only existing local files are shown, so the UI never invents duplicate gallery images. Admin uploads accept WebP files up to 5 MiB and persist in the untracked `product_uploads` Docker volume. Keep local override filenames aligned with product slugs. Missing images fall back to the generic generated SVG. Do not commit copyrighted figure/anime images.
 
 ## Environment checklist
 

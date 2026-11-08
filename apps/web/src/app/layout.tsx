@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import PwaRegistration from '../components/pwa-registration';
+import MobileBottomNav from '../components/mobile-bottom-nav';
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.SITE_URL ?? 'http://localhost:8081'),
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a className="skip-link" href="#main-content">
           Bỏ qua đến nội dung chính
         </a>
+        <MobileBottomNav />
         {children}
         <PwaRegistration />
       </body>

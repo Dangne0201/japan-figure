@@ -27,7 +27,7 @@ describe('CatalogService', () => {
     );
 
     await expect(service.facets()).resolves.toEqual(result);
-    expect(redis.get).toHaveBeenCalledWith('catalog:v1:facets');
+    expect(redis.get).toHaveBeenCalledWith('catalog:v2:facets');
     expect(prisma.brand.findMany).not.toHaveBeenCalled();
     expect(prisma.product.findMany).not.toHaveBeenCalled();
   });
@@ -57,9 +57,91 @@ describe('CatalogService', () => {
       scales: [],
     });
     expect(prisma.brand.findMany).toHaveBeenCalledTimes(1);
-    expect(redis.set).toHaveBeenCalledWith('catalog:v1:facets', expect.any(String), 'EX', 60);
+    expect(redis.set).toHaveBeenCalledWith('catalog:v2:facets', expect.any(String), 'EX', 60);
     expect(warning).toHaveBeenCalledWith(
       expect.stringContaining('Catalog cache read failed; serving uncached data'),
+    );
+  });
+
+  it('counts only published products in each catalog facet', async () => {
+    const redis = { get: jest.fn().mockResolvedValue(null), set: jest.fn(), del: jest.fn() };
+    const prisma = {
+      brand: {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ slug: 'brand-a', name: 'Brand A', _count: { products: 3 } }]),
+      },
+      series: {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([{ slug: 'series-a', name: 'Series A', _count: { products: 2 } }]),
+      },
+      category: {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([
+            { slug: 'scale-figure', name: 'Scale Figure', _count: { products: 1 } },
+          ]),
+      },
+      product: { findMany: jest.fn().mockResolvedValue([{ scale: '1/7' }]) },
+    };
+    const service = new CatalogService(
+      prisma as unknown as PrismaService,
+      redis as unknown as Redis,
+    );
+
+    await expect(service.facets()).resolves.toEqual({
+      brands: [{ slug: 'brand-a', name: 'Brand A', productCount: 3 }],
+      series: [{ slug: 'series-a', name: 'Series A', productCount: 2 }],
+      categories: [{ slug: 'scale-figure', name: 'Scale Figure', productCount: 1 }],
+      scales: ['1/7'],
+    });
+    expect(prisma.brand.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          _count: {
+            select: { products: { where: { publishedAt: { not: null } } } },
+          },
+        }),
+      }),
+    );
+    expect(prisma.category.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        select: expect.objectContaining({
+          _count: {
+            select: {
+              products: { where: { product: { publishedAt: { not: null } } } },
+            },
+          },
+        }),
+      }),
+    );
+  });
+
+  it('only serves banners within their active time window', async () => {
+    const redis = { get: jest.fn().mockResolvedValue(null), set: jest.fn(), del: jest.fn() };
+    const prisma = {
+      banner: { findMany: jest.fn().mockResolvedValue([]) },
+    };
+    const service = new CatalogService(
+      prisma as unknown as PrismaService,
+      redis as unknown as Redis,
+    );
+    jest.spyOn(service, 'list').mockResolvedValue({ items: [], pagination: {} } as never);
+
+    await expect(service.home()).resolves.toMatchObject({ banners: [] });
+    const query = prisma.banner.findMany.mock.calls[0]?.[0];
+    expect(query).toEqual(
+      expect.objectContaining({
+        where: {
+          isActive: true,
+          startsAt: { lte: expect.any(Date) },
+          endsAt: { gt: expect.any(Date) },
+        },
+      }),
+    );
+    expect((query?.where.startsAt.lte as Date).getTime()).toBe(
+      (query?.where.endsAt.gt as Date).getTime(),
     );
   });
 });

@@ -2,6 +2,15 @@
 
 Append one entry per decision: date, decision, reason, alternatives considered.
 
+## 2026-11-08 — Mobile storefront navigation and local product galleries
+
+- Keep one responsive storefront, with a five-destination fixed bottom navigation on narrow screens and the existing full navigation/search actions on desktop. Reserve bottom safe-area space and keep the global skip link and visible focus behavior.
+- Show catalog counts only from published-product relation counts. Order quick links by real count; do not hardcode popularity.
+- Add quantity and a direct-to-checkout action only for in-stock variants. Login redirects accept only same-origin local paths, and checkout login merges the guest cart through the existing API flow.
+- Support up to four optional product gallery images named `<slug>-2.webp` through `<slug>-5.webp` in the ignored local-images directory. Keep self-made placeholders as the fallback and do not duplicate images to imply a gallery.
+- Add help copy only from existing simulation policies. Payments, shipping, product authenticity, warranty, and returns remain explicitly non-real.
+- Alternatives considered: use a third-party storefront/gallery asset, add schema migrations for extra local images, or show repeated placeholders. Keep images local and ignored to respect the public repository image policy and avoid database changes.
+
 ## 2026-11-08 — Support keyboard navigation throughout the storefront
 
 - Add a global skip link to the main landmark, visible focus indicators, and reduced-motion handling. Keep page headers outside the main landmark so the skip action actually bypasses navigation.

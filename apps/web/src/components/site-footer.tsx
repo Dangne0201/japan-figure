@@ -9,6 +9,9 @@ export default function SiteFooter() {
           <Link className="hover:text-brand-plum" href="/products">
             Danh mục
           </Link>
+          <Link className="hover:text-brand-plum" href="/help">
+            Hướng dẫn &amp; FAQ
+          </Link>
           <Link className="hover:text-brand-plum" href="/api/docs">
             Tài liệu API
           </Link>

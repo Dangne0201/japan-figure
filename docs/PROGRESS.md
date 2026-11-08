@@ -4,6 +4,14 @@
 
 Phase 6 Part 2 engineering is complete. The base Phase 5b/6 work is recorded at `fd5e1e2`; follow-up hardening is published directly to `main` at `bbba86b`.
 
+## Storefront UX follow-up (complete)
+
+- Completed the requested mobile storefront checklist: compact responsive header, accessible fixed mobile navigation, published-product facet counts, quantity/direct checkout, zoomable product images with optional local-only gallery files, a policy-based help page, and clear banner schedule labels.
+- No copyrighted images or transactions are added. Local supplemental images remain ignored by Git.
+- Web tests (16/16), API tests (24 suites / 93 tests), API and web lint, and API/web production builds pass. Prettier passes for all changed files; repository-wide format check still flags the untouched `apps/web/test/pwa.test.mjs`.
+- Recreated the development Compose application services and verified they are healthy; `/api/health`, `/help`, and `/products` return 200. Browser checks at mobile and desktop widths verified navigation visibility, no horizontal overflow, keyboard access, quantity adjustment, gallery zoom/Escape, and buy-now routing to checkout/login.
+- Commit and push to `main` are pending.
+
 ## Completed
 
 - Phase 1 foundation and Phase 2 catalog/storefront are complete. Phase 2 was self-reviewed, CI-verified, and merged to `main`.

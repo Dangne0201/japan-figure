@@ -188,21 +188,37 @@ export class CatalogService {
   }
 
   async facets() {
-    return this.withCache('catalog:v1:facets', 60, async () => {
+    return this.withCache('catalog:v2:facets', 60, async () => {
       const [brands, series, categories, scaleRows] = await Promise.all([
         this.prisma.brand.findMany({
           where: { products: { some: { publishedAt: { not: null } } } },
-          select: { slug: true, name: true },
+          select: {
+            slug: true,
+            name: true,
+            _count: { select: { products: { where: { publishedAt: { not: null } } } } },
+          },
           orderBy: { name: 'asc' },
         }),
         this.prisma.series.findMany({
           where: { products: { some: { publishedAt: { not: null } } } },
-          select: { slug: true, name: true },
+          select: {
+            slug: true,
+            name: true,
+            _count: { select: { products: { where: { publishedAt: { not: null } } } } },
+          },
           orderBy: { name: 'asc' },
         }),
         this.prisma.category.findMany({
           where: { products: { some: { product: { publishedAt: { not: null } } } } },
-          select: { slug: true, name: true },
+          select: {
+            slug: true,
+            name: true,
+            _count: {
+              select: {
+                products: { where: { product: { publishedAt: { not: null } } } },
+              },
+            },
+          },
           orderBy: { name: 'asc' },
         }),
         this.prisma.product.findMany({
@@ -212,7 +228,24 @@ export class CatalogService {
           orderBy: { scale: 'asc' },
         }),
       ]);
-      return { brands, series, categories, scales: scaleRows.flatMap(({ scale }) => scale ?? []) };
+      return {
+        brands: brands.map(({ slug, name, _count }) => ({
+          slug,
+          name,
+          productCount: _count.products,
+        })),
+        series: series.map(({ slug, name, _count }) => ({
+          slug,
+          name,
+          productCount: _count.products,
+        })),
+        categories: categories.map(({ slug, name, _count }) => ({
+          slug,
+          name,
+          productCount: _count.products,
+        })),
+        scales: scaleRows.flatMap(({ scale }) => scale ?? []),
+      };
     });
   }
 

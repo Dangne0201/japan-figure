@@ -155,7 +155,7 @@ export default function CheckoutPage() {
           <p className="mt-3 text-sm text-brand-ink/70">
             Giỏ hàng khách sẽ được gộp sau khi đăng nhập.
           </p>
-          <Link className="button-primary mt-5" href="/login">
+          <Link className="button-primary mt-5" href="/login?next=%2Fcheckout">
             Đăng nhập
           </Link>
         </div>

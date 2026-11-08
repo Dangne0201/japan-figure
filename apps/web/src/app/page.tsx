@@ -29,15 +29,17 @@ const categoryLinks = [
 
 export default async function HomePage() {
   let home: CatalogHome | null = null;
-  let categories: CatalogFacets['categories'] = categoryLinks.map(({ slug, name }) => ({
-    slug,
-    name,
-  }));
+  let facets: CatalogFacets = {
+    brands: [],
+    series: [],
+    categories: categoryLinks.map(({ slug, name }) => ({ slug, name, productCount: 0 })),
+    scales: [],
+  };
   let unavailable = false;
   try {
-    const [products, facets] = await Promise.all([getCatalogHome(), getCatalogFacets()]);
+    const [products, catalogFacets] = await Promise.all([getCatalogHome(), getCatalogFacets()]);
     home = products;
-    categories = facets.categories;
+    facets = catalogFacets;
   } catch (error) {
     console.error('Unable to load storefront catalog.', error);
     unavailable = true;
@@ -134,7 +136,10 @@ export default async function HomePage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-5">
             {categoryLinks.map((category, index) => {
               const name =
-                categories.find((item) => item.slug === category.slug)?.name ?? category.name;
+                facets.categories.find((item) => item.slug === category.slug)?.name ??
+                category.name;
+              const productCount =
+                facets.categories.find((item) => item.slug === category.slug)?.productCount ?? 0;
               return (
                 <Link
                   key={category.slug}
@@ -148,11 +153,67 @@ export default async function HomePage() {
                   <span className="mt-1 block text-xs leading-5 text-brand-ink/75">
                     {category.description}
                   </span>
+                  {productCount > 0 ? (
+                    <span className="mt-3 block text-xs font-semibold text-brand-plum">
+                      {productCount} sản phẩm
+                    </span>
+                  ) : null}
                 </Link>
               );
             })}
           </div>
         </section>
+        {facets.brands.length || facets.series.length ? (
+          <section className="page-shell pb-8" aria-labelledby="browse-by-title">
+            <div className="rounded-3xl border border-brand-plum/10 bg-white p-5 sm:p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-plum">
+                Tìm nhanh
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold" id="browse-by-title">
+                Duyệt theo series và thương hiệu
+              </h2>
+              <div className="mt-5 grid gap-6 sm:grid-cols-2">
+                {[
+                  {
+                    label: 'Series nổi bật',
+                    key: 'series',
+                    items: [...facets.series]
+                      .sort(
+                        (a, b) => b.productCount - a.productCount || a.name.localeCompare(b.name),
+                      )
+                      .slice(0, 5),
+                  },
+                  {
+                    label: 'Thương hiệu',
+                    key: 'brand',
+                    items: [...facets.brands]
+                      .sort(
+                        (a, b) => b.productCount - a.productCount || a.name.localeCompare(b.name),
+                      )
+                      .slice(0, 5),
+                  },
+                ].map((group) => (
+                  <div key={group.key}>
+                    <h3 className="font-semibold">{group.label}</h3>
+                    <ul className="mt-2 flex flex-wrap gap-2">
+                      {group.items.map((item) => (
+                        <li key={item.slug}>
+                          <Link
+                            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-brand-cream px-4 text-sm hover:text-brand-plum focus-visible:outline"
+                            href={`/products?${group.key}=${encodeURIComponent(item.slug)}`}
+                          >
+                            {item.name}
+                            <span className="text-xs text-brand-ink/60">{item.productCount}</span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        ) : null}
 
         {unavailable || !home ? (
           <section className="page-shell py-10" role="status">
