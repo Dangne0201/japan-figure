@@ -38,6 +38,13 @@ export default function ProductCard({ product }: { product: Product }) {
         >
           {product.name}
         </Link>
+        {product.reviewCount > 0 && product.averageRating !== null ? (
+          <p className="mt-1 text-xs text-brand-plum" aria-label="Đánh giá đã duyệt">
+            ★ {product.averageRating.toFixed(1)} · {product.reviewCount} đánh giá đã duyệt
+          </p>
+        ) : (
+          <p className="mt-1 text-xs text-brand-ink/60">Chưa có đánh giá đã duyệt</p>
+        )}
         <p className="mt-2 text-sm font-bold text-brand-ink">
           {formatVnd(product.salePriceVnd ?? product.priceVnd)}
           {product.salePriceVnd && (

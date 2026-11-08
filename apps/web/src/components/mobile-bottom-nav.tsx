@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 
 const items = [
   { href: '/', label: 'Trang chủ', icon: '⌂' },
-  { href: '/products', label: 'Danh mục', icon: '▦' },
+  { href: '/collections', label: 'Khám phá', icon: '▦' },
   { href: '/chat', label: 'Tư vấn', icon: '✧' },
   { href: '/account', label: 'Tài khoản', icon: '♙' },
   { href: '/cart', label: 'Giỏ hàng', icon: '♡' },
@@ -18,7 +18,11 @@ export default function MobileBottomNav() {
     <nav className="mobile-bottom-nav sm:hidden" aria-label="Điều hướng nhanh">
       {items.map(({ href, label, icon }) => {
         const active =
-          href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
+          href === '/'
+            ? pathname === '/'
+            : href === '/collections'
+              ? pathname === href || pathname.startsWith('/products')
+              : pathname === href || pathname.startsWith(`${href}/`);
         return (
           <Link
             aria-current={active ? 'page' : undefined}

@@ -3,46 +3,66 @@ import { IsBoolean, IsIn, IsInt, IsOptional, IsString, Max, MaxLength, Min } fro
 import type { Availability, CatalogSort } from '../catalog-query';
 
 const toBoolean = ({ value }: { value: unknown }): unknown => {
+  if (value === '') return undefined;
   if (value === 'true') return true;
   if (value === 'false') return false;
   return value;
 };
 
+const toOptionalString = ({ value }: { value: unknown }): unknown =>
+  value === '' ? undefined : value;
+
+const toOptionalNumber = ({ value }: { value: unknown }): unknown =>
+  value === '' ? undefined : Number(value);
+
 export class CatalogQueryDto {
   @IsOptional()
+  @Transform(toOptionalString)
   @IsString()
   @MaxLength(100)
   q?: string;
 
   @IsOptional()
+  @Transform(toOptionalString)
   @IsString()
   brand?: string;
 
   @IsOptional()
+  @Transform(toOptionalString)
   @IsString()
   series?: string;
 
   @IsOptional()
+  @Transform(toOptionalString)
   @IsString()
   category?: string;
 
   @IsOptional()
+  @Transform(toOptionalString)
   @IsString()
   scale?: string;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(toOptionalNumber)
+  @IsInt()
+  @Min(2000)
+  @Max(2100)
+  releaseYear?: number;
+
+  @IsOptional()
+  @Transform(toOptionalNumber)
   @IsInt()
   @Min(0)
   minPrice?: number;
 
   @IsOptional()
-  @Type(() => Number)
+  @Transform(toOptionalNumber)
   @IsInt()
   @Min(0)
   maxPrice?: number;
 
   @IsOptional()
+  @Transform(toOptionalString)
   @IsIn(['in-stock', 'sold-out'])
   availability?: Availability;
 
@@ -67,6 +87,7 @@ export class CatalogQueryDto {
   saleOnly?: boolean;
 
   @IsOptional()
+  @Transform(toOptionalString)
   @IsIn(['newest', 'price-asc', 'price-desc', 'name-asc'])
   sort?: CatalogSort;
 

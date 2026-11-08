@@ -4,6 +4,14 @@
 
 Phase 6 Part 2 engineering is complete. The base Phase 5b/6 work is recorded at `fd5e1e2`; follow-up hardening is published directly to `main` at `bbba86b`.
 
+## Collection discovery UX (complete)
+
+- Added a standalone collection-discovery page with live product-type, series, manufacturer, and release-year facets, plus navigation to supported catalog selections and help.
+- Added entry points from the shared desktop/mobile navigation and footer and made product taxonomy badges link to matching catalog filters.
+- Kept copy, layout, and graphic treatment original to Japan Figure; all counts come from published catalog data, with no fabricated retail services or real transactions.
+- Verified web/API tests, lint, formatting, production builds, Compose health, and browser behavior for catalog discovery and product navigation.
+- Changes remain uncommitted and unpublished pending owner review.
+
 ## Storefront UX follow-up (complete)
 
 - Completed the requested mobile storefront checklist: compact responsive header, accessible fixed mobile navigation, published-product facet counts, quantity/direct checkout, zoomable product images with optional local-only gallery files, a policy-based help page, and clear banner schedule labels.
@@ -11,6 +19,15 @@ Phase 6 Part 2 engineering is complete. The base Phase 5b/6 work is recorded at 
 - Web tests (16/16), API tests (24 suites / 93 tests), API and web lint, and API/web production builds pass. Prettier passes for all changed files; repository-wide format check still flags the untouched `apps/web/test/pwa.test.mjs`.
 - Recreated the development Compose application services and verified they are healthy; `/api/health`, `/help`, and `/products` return 200. Browser checks at mobile and desktop widths verified navigation visibility, no horizontal overflow, keyboard access, quantity adjustment, gallery zoom/Escape, and buy-now routing to checkout/login.
 - Storefront UX changes were committed as `efc5c71` and pushed to `origin/main`.
+
+## Catalog UX follow-up (complete)
+
+- Added release-year browsing and filtering from published catalog data, removable filter chips, a mobile sort row, approved-review summaries, and an explicit preorder estimate breakdown.
+- Empty optional catalog query values are normalized as omitted values so the mobile filter form can submit without turning blank year, price, or availability controls into validation errors.
+- Kept prices, deposits, stock, and release dates labeled as simulated; no real preorder or payment action was introduced.
+- Verified all tests (API: 24 suites / 95 tests; web: 18 tests), both workspace lint checks, Prettier on changed files, and production builds.
+- Recreated development Compose services; verified health, facet/release-year API responses, blank-filter API requests, mobile filtering/sorting/chip removal, desktop filters, approved-review labels, and preorder breakdown in the browser.
+- Changes remain uncommitted and unpublished pending owner review.
 
 ## Completed
 

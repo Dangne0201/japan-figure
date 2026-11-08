@@ -39,6 +39,7 @@ test('storefront exposes mobile navigation, real catalog counts, and help conten
 
   assert.match(layout, /<MobileBottomNav \/>/u);
   assert.ok(navigation.includes("aria-current={active ? 'page' : undefined}"));
+  assert.match(navigation, /href: '\/collections', label: 'Khám phá'/u);
   assert.match(home, /productCount/u);
   assert.match(help, /Không có kết nối ngân hàng/u);
   assert.match(help, /không xử lý hoàn tiền thật/u);
@@ -82,4 +83,62 @@ test('public banners are labeled by their schedule in the admin panel', async ()
   assert.match(admin, /Đã hết hạn/u);
   assert.match(admin, /Đang hiển thị/u);
   assert.match(catalog, /startsAt: \{ lte: now \}, endsAt: \{ gt: now \}/u);
+});
+
+test('catalog browsing includes release years, quick sorting, and removable filter chips', async () => {
+  const [filters, listing, home] = await Promise.all([
+    readFile(new URL('../src/components/catalog-filters.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/components/catalog-listing.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/page.tsx', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(filters, /name="releaseYear"/u);
+  assert.match(filters, /productCount/u);
+  assert.match(listing, /Sắp xếp sản phẩm/u);
+  assert.match(listing, /Bỏ bộ lọc/u);
+  assert.match(listing, /Xóa bộ lọc/u);
+  assert.match(home, /Năm phát hành/u);
+});
+
+test('collection discovery links to live catalog facets and supported demo journeys', async () => {
+  const [page, header, footer] = await Promise.all([
+    readFile(new URL('../src/app/collections/page.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/components/site-header.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/components/site-footer.tsx', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(page, /getCatalogFacets/u);
+  assert.match(page, /title="Chọn theo dòng figure"/u);
+  assert.match(page, /title="Gặp lại series bạn yêu"/u);
+  assert.match(page, /title="Khám phá nhà sản xuất"/u);
+  assert.match(page, /releaseYear=/u);
+  assert.match(page, /không đại diện/u);
+  assert.match(header, /href="\/collections"/u);
+  assert.match(footer, /href="\/collections"/u);
+});
+
+test('product cards use approved review summaries and preorder detail explains simulated amounts', async () => {
+  const [card, detail, api] = await Promise.all([
+    readFile(new URL('../src/components/product-card.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../src/app/products/[slug]/page.tsx', import.meta.url), 'utf8'),
+    readFile(new URL('../../api/src/catalog/catalog.service.ts', import.meta.url), 'utf8'),
+  ]);
+
+  assert.match(card, /đánh giá đã duyệt/u);
+  assert.match(detail, /Phần còn lại tham khảo/u);
+  assert.match(detail, /không phải báo\s+giá hay yêu cầu thanh toán thật/u);
+  assert.match(api, /status: 'APPROVED'/u);
+  assert.match(api, /reviewCount: summary\._count\._all/u);
+});
+
+test('product taxonomy badges link to the matching catalog filters', async () => {
+  const detail = await readFile(
+    new URL('../src/app/products/[slug]/page.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(detail, /Duyệt sản phẩm liên quan/u);
+  assert.match(detail, /product\.categories\[0\]\?\.slug/u);
+  assert.match(detail, /product\.brand\.slug/u);
+  assert.match(detail, /product\.series\.slug/u);
 });

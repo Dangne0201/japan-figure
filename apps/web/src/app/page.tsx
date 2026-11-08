@@ -34,6 +34,7 @@ export default async function HomePage() {
     series: [],
     categories: categoryLinks.map(({ slug, name }) => ({ slug, name, productCount: 0 })),
     scales: [],
+    releaseYears: [],
   };
   let unavailable = false;
   try {
@@ -191,6 +192,15 @@ export default async function HomePage() {
                         (a, b) => b.productCount - a.productCount || a.name.localeCompare(b.name),
                       )
                       .slice(0, 5),
+                  },
+                  {
+                    label: 'Năm phát hành',
+                    key: 'releaseYear',
+                    items: facets.releaseYears.slice(0, 5).map(({ year, productCount }) => ({
+                      slug: String(year),
+                      name: String(year),
+                      productCount,
+                    })),
                   },
                 ].map((group) => (
                   <div key={group.key}>

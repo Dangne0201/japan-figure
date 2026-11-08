@@ -25,14 +25,17 @@ export default function SiteHeader({ initialQuery = '' }: { initialQuery?: strin
           className="order-3 hidden items-center gap-5 overflow-x-auto text-sm font-medium sm:flex"
           aria-label="Danh mục chính"
         >
+          <Link className="whitespace-nowrap hover:text-brand-plum" href="/collections">
+            Khám phá
+          </Link>
           <Link className="whitespace-nowrap hover:text-brand-plum" href="/products">
             Tất cả figure
           </Link>
           <Link className="whitespace-nowrap hover:text-brand-plum" href="/products?preorder=true">
             Đặt trước
           </Link>
-          <Link className="whitespace-nowrap hover:text-brand-plum" href="/products?featured=true">
-            Nổi bật
+          <Link className="whitespace-nowrap hover:text-brand-plum" href="/products?saleOnly=true">
+            Ưu đãi
           </Link>
           <Link className="whitespace-nowrap hover:text-brand-plum" href="/chat">
             Tư vấn

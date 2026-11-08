@@ -8,9 +8,11 @@ export type SelectedFilters = Record<string, string | undefined>;
 export default function CatalogFilters({
   facets,
   selected,
+  activeCount = 0,
 }: {
   facets: CatalogFacets;
   selected: SelectedFilters;
+  activeCount?: number;
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -55,8 +57,10 @@ export default function CatalogFilters({
   }, [open]);
 
   const form = (
-    <form action="/products" className="space-y-4" onSubmit={() => setOpen(false)}>
+    <form action="/products" className="space-y-4">
       {selected.q && <input type="hidden" name="q" value={selected.q} />}
+      {selected.featured && <input type="hidden" name="featured" value={selected.featured} />}
+      {selected.newArrival && <input type="hidden" name="newArrival" value={selected.newArrival} />}
       <label className="filter-label">
         Series
         <select className="filter-control" name="series" defaultValue={selected.series ?? ''}>
@@ -97,6 +101,21 @@ export default function CatalogFilters({
           {facets.scales.map((scale) => (
             <option key={scale} value={scale}>
               {scale}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="filter-label">
+        Năm phát hành
+        <select
+          className="filter-control"
+          name="releaseYear"
+          defaultValue={selected.releaseYear ?? ''}
+        >
+          <option value="">Mọi năm</option>
+          {facets.releaseYears.map(({ year, productCount }) => (
+            <option key={year} value={year}>
+              {year} ({productCount})
             </option>
           ))}
         </select>
@@ -164,7 +183,7 @@ export default function CatalogFilters({
         />
         Chỉ xem sản phẩm ưu đãi
       </label>
-      <label className="filter-label">
+      <label className="filter-label hidden sm:block">
         Sắp xếp
         <select className="filter-control" name="sort" defaultValue={selected.sort ?? 'newest'}>
           <option value="newest">Mới cập nhật</option>
@@ -177,7 +196,6 @@ export default function CatalogFilters({
         <a
           className="button-secondary"
           href={selected.q ? `/products?q=${encodeURIComponent(selected.q)}` : '/products'}
-          onClick={() => setOpen(false)}
         >
           Xóa lọc
         </a>
@@ -196,7 +214,7 @@ export default function CatalogFilters({
         type="button"
         onClick={() => setOpen(true)}
       >
-        Lọc và sắp xếp
+        Lọc sản phẩm{activeCount ? ` (${activeCount})` : ''}
       </button>
       <aside
         className="hidden rounded-3xl border border-brand-plum/10 bg-white p-5 sm:block"

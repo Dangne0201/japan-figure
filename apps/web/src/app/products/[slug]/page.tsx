@@ -118,13 +118,30 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                 />
               ) : null}
               <WishlistButton productSlug={product.slug} />
-              <div className="mt-6 flex flex-wrap gap-2">
-                <span className="badge">{category}</span>
+              <nav className="mt-6 flex flex-wrap gap-2" aria-label="Duyệt sản phẩm liên quan">
+                <Link
+                  className="badge transition hover:bg-brand-plum hover:text-white"
+                  href={`/products?category=${encodeURIComponent(product.categories[0]?.slug ?? '')}`}
+                >
+                  {category}
+                </Link>
+                <Link
+                  className="badge transition hover:bg-brand-plum hover:text-white"
+                  href={`/products?brand=${encodeURIComponent(product.brand.slug)}`}
+                >
+                  {product.brand.name}
+                </Link>
+                <Link
+                  className="badge transition hover:bg-brand-plum hover:text-white"
+                  href={`/products?series=${encodeURIComponent(product.series.slug)}`}
+                >
+                  {product.series.name}
+                </Link>
                 {product.isPreorder && <span className="badge">Mô phỏng: đặt trước</span>}
                 {!product.isPreorder && product.stock === 0 && (
                   <span className="badge badge-muted">Tạm hết hàng</span>
                 )}
-              </div>
+              </nav>
               <dl className="mt-7 grid grid-cols-2 gap-x-4 gap-y-4 rounded-3xl bg-white p-5 text-sm">
                 <div>
                   <dt className="text-brand-ink/55">Thương hiệu</dt>
@@ -159,12 +176,61 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
                   </dd>
                 </div>
               </dl>
-              {product.isPreorder && product.preorderDepositVnd && (
-                <p className="mt-4 rounded-2xl bg-brand-mint/50 p-4 text-sm">
-                  Tiền cọc tham khảo: <strong>{formatVnd(product.preorderDepositVnd)}</strong>. Đây
-                  chỉ là dữ liệu mô phỏng, không phát sinh thanh toán.
-                </p>
-              )}
+              {product.isPreorder ? (
+                <section
+                  aria-labelledby="preorder-info-title"
+                  className="mt-5 rounded-2xl border border-brand-plum/10 bg-brand-mint/40 p-4"
+                >
+                  <h2 className="font-semibold" id="preorder-info-title">
+                    Thông tin đặt trước mô phỏng
+                  </h2>
+                  <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                    <div>
+                      <dt className="text-brand-ink/65">Giá tham khảo</dt>
+                      <dd className="font-semibold">
+                        {formatVnd(product.salePriceVnd ?? product.priceVnd)}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-brand-ink/65">Cọc dự kiến</dt>
+                      <dd className="font-semibold">
+                        {product.preorderDepositVnd
+                          ? formatVnd(product.preorderDepositVnd)
+                          : 'Chưa có dữ liệu'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-brand-ink/65">Phần còn lại tham khảo</dt>
+                      <dd className="font-semibold">
+                        {product.preorderDepositVnd
+                          ? formatVnd(
+                              Math.max(
+                                0,
+                                (product.salePriceVnd ?? product.priceVnd) -
+                                  product.preorderDepositVnd,
+                              ),
+                            )
+                          : 'Chưa có dữ liệu'}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-brand-ink/65">Ngày phát hành dự kiến</dt>
+                      <dd className="font-semibold">
+                        {product.releaseDate
+                          ? new Date(`${product.releaseDate}T00:00:00Z`).toLocaleDateString(
+                              'vi-VN',
+                              { timeZone: 'UTC', year: 'numeric', month: 'long', day: 'numeric' },
+                            )
+                          : 'Đang cập nhật'}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p className="mt-3 text-xs leading-5 text-brand-ink/70">
+                    Giá, cọc, phần còn lại và lịch phát hành chỉ là dữ liệu học tập, không phải báo
+                    giá hay yêu cầu thanh toán thật.
+                  </p>
+                </section>
+              ) : null}
               <p className="mt-5 text-xs leading-5 text-brand-ink/55">
                 Hình ảnh là placeholder tự tạo hoặc ảnh local do chủ dự án cung cấp. Giá, ngày phát
                 hành và tồn kho trong demo không đại diện cho thông tin bán hàng thật.
@@ -184,9 +250,13 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               Đánh giá đã duyệt
               {result.averageRating !== null ? (
                 <span className="ml-2 text-sm font-medium text-brand-plum">
-                  ★ {result.averageRating.toFixed(1)} / 5
+                  ★ {result.averageRating.toFixed(1)} / 5 · {product.reviewCount} đánh giá đã duyệt
                 </span>
-              ) : null}
+              ) : (
+                <span className="ml-2 text-sm font-medium text-brand-ink/60">
+                  Chưa có đánh giá đã duyệt
+                </span>
+              )}
             </h2>
             {result.reviews.length ? (
               <ul className="mt-4 divide-y divide-brand-plum/10">

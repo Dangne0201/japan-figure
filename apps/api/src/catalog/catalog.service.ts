@@ -36,6 +36,7 @@ interface CatalogListQuery {
   series?: string;
   category?: string;
   scale?: string;
+  releaseYear?: number;
   minPrice?: number;
   maxPrice?: number;
   availability?: 'in-stock' | 'sold-out';
@@ -65,6 +66,8 @@ export interface ProductCard {
   isNewArrival: boolean;
   stock: number;
   availability: 'in-stock' | 'sold-out';
+  averageRating: number | null;
+  reviewCount: number;
   brand: { slug: string; name: string };
   series: { slug: string; name: string };
   categories: Array<{ slug: string; name: string }>;
@@ -101,6 +104,7 @@ export class CatalogService {
       ...(query.series !== undefined ? { series: query.series } : {}),
       ...(query.category !== undefined ? { category: query.category } : {}),
       ...(query.scale !== undefined ? { scale: query.scale } : {}),
+      ...(query.releaseYear !== undefined ? { releaseYear: query.releaseYear } : {}),
       ...(query.minPrice !== undefined ? { minPrice: query.minPrice } : {}),
       ...(query.maxPrice !== undefined ? { maxPrice: query.maxPrice } : {}),
       ...(query.availability !== undefined ? { availability: query.availability } : {}),
@@ -147,7 +151,7 @@ export class CatalogService {
         }
       });
       const total = candidates.length;
-      const items = candidates.slice((page - 1) * limit, page * limit).map(toProductCard);
+      const items = await this.toProductCards(candidates.slice((page - 1) * limit, page * limit));
       return { items, pagination: { page, limit, total, pages: Math.ceil(total / limit) } };
     }
 
@@ -163,7 +167,7 @@ export class CatalogService {
     ]);
 
     return {
-      items: products.map(toProductCard),
+      items: await this.toProductCards(products),
       pagination: { page, limit, total, pages: Math.ceil(total / limit) },
     };
   }
@@ -188,8 +192,8 @@ export class CatalogService {
   }
 
   async facets() {
-    return this.withCache('catalog:v2:facets', 60, async () => {
-      const [brands, series, categories, scaleRows] = await Promise.all([
+    return this.withCache('catalog:v3:facets', 60, async () => {
+      const [brands, series, categories, scaleRows, releaseYears] = await Promise.all([
         this.prisma.brand.findMany({
           where: { products: { some: { publishedAt: { not: null } } } },
           select: {
@@ -227,6 +231,14 @@ export class CatalogService {
           distinct: ['scale'],
           orderBy: { scale: 'asc' },
         }),
+        this.prisma.$queryRaw<Array<{ year: number; productCount: number }>>(Prisma.sql`
+          SELECT EXTRACT(YEAR FROM release_date)::int AS year,
+            COUNT(*)::int AS "productCount"
+          FROM products
+          WHERE published_at IS NOT NULL AND release_date IS NOT NULL
+          GROUP BY EXTRACT(YEAR FROM release_date)
+          ORDER BY year DESC
+        `),
       ]);
       return {
         brands: brands.map(({ slug, name, _count }) => ({
@@ -245,12 +257,13 @@ export class CatalogService {
           productCount: _count.products,
         })),
         scales: scaleRows.flatMap(({ scale }) => scale ?? []),
+        releaseYears,
       };
     });
   }
 
   async home() {
-    return this.withCache('catalog:v1:home', 10, async () => {
+    return this.withCache('catalog:v2:home', 10, async () => {
       const now = new Date();
       const [featured, newArrivals, preorders, sales, banners] = await Promise.all([
         this.list({ featured: true, limit: 8 }),
@@ -275,14 +288,14 @@ export class CatalogService {
   }
 
   async detail(slug: string) {
-    return this.withCache(this.cacheKey('detail', slug), 10, async () => {
+    return this.withCache(this.cacheKey('detail-v2', slug), 10, async () => {
       const product = await this.prisma.product.findFirst({
         where: { slug, publishedAt: { not: null } },
         include: productInclude,
       });
       if (!product) throw new NotFoundException('Không tìm thấy sản phẩm.');
 
-      const [related, reviews, reviewAggregate] = await Promise.all([
+      const [related, reviews] = await Promise.all([
         this.prisma.product.findMany({
           where: {
             publishedAt: { not: null },
@@ -304,18 +317,42 @@ export class CatalogService {
           orderBy: { createdAt: 'desc' },
           take: 20,
         }),
-        this.prisma.review.aggregate({
-          where: { productId: product.id, status: 'APPROVED' },
-          _avg: { rating: true },
-        }),
       ]);
+      const [productCard, ...relatedCards] = await this.toProductCards([product, ...related]);
       return {
-        product: toProductCard(product),
-        related: related.map(toProductCard),
+        product: productCard ?? toProductCard(product),
+        related: relatedCards,
         reviews,
-        averageRating: reviewAggregate._avg.rating,
+        averageRating: productCard?.averageRating ?? null,
       };
     });
+  }
+
+  private async toProductCards(products: CatalogProduct[]): Promise<ProductCard[]> {
+    if (!products.length) return [];
+    const summaries = await this.prisma.review.groupBy({
+      by: ['productId'],
+      where: {
+        productId: { in: products.map(({ id }) => id) },
+        status: 'APPROVED',
+      },
+      _avg: { rating: true },
+      _count: { _all: true },
+    });
+    const summaryByProduct = new Map(
+      summaries.map((summary) => [
+        summary.productId,
+        {
+          averageRating: summary._avg.rating,
+          reviewCount: summary._count._all,
+        },
+      ]),
+    );
+    return products.map((product) => ({
+      ...toProductCard(product),
+      averageRating: summaryByProduct.get(product.id)?.averageRating ?? null,
+      reviewCount: summaryByProduct.get(product.id)?.reviewCount ?? 0,
+    }));
   }
 
   private cacheKey(operation: string, value: unknown): string {
@@ -416,6 +453,8 @@ function toProductCard(product: CatalogProduct): ProductCard {
     isNewArrival: product.isNewArrival,
     stock,
     availability: product.isPreorder || stock > 0 ? 'in-stock' : 'sold-out',
+    averageRating: null,
+    reviewCount: 0,
     brand: product.brand,
     series: product.series,
     categories: product.categories.map(({ category }) => category),

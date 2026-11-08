@@ -1,10 +1,51 @@
+import 'reflect-metadata';
 import {
   buildCatalogWhere,
   catalogOrderBy,
   normalizeSearchQuery,
 } from '../src/catalog/catalog-query';
+import { plainToInstance } from 'class-transformer';
+import { validateSync } from 'class-validator';
+import { CatalogQueryDto } from '../src/catalog/dto/catalog-query.dto';
 
 describe('catalog query helpers', () => {
+  it('treats empty optional query values as omitted', () => {
+    const query = plainToInstance(CatalogQueryDto, {
+      q: '',
+      brand: '',
+      series: '',
+      category: '',
+      scale: '',
+      releaseYear: '',
+      minPrice: '',
+      maxPrice: '',
+      availability: '',
+      preorder: '',
+      featured: '',
+      newArrival: '',
+      saleOnly: '',
+      sort: '',
+    });
+
+    expect(query).toMatchObject({
+      q: undefined,
+      brand: undefined,
+      series: undefined,
+      category: undefined,
+      scale: undefined,
+      releaseYear: undefined,
+      minPrice: undefined,
+      maxPrice: undefined,
+      availability: undefined,
+      preorder: undefined,
+      featured: undefined,
+      newArrival: undefined,
+      saleOnly: undefined,
+      sort: undefined,
+    });
+    expect(validateSync(query)).toEqual([]);
+  });
+
   it('normalizes whitespace and bounds user search input', () => {
     expect(normalizeSearchQuery('  nhân   vật  ')).toBe('nhân vật');
     expect(normalizeSearchQuery('   ')).toBeUndefined();
@@ -18,6 +59,7 @@ describe('catalog query helpers', () => {
         series: 'frieren-beyond-journeys-end',
         category: 'scale-figure',
         scale: '1/7',
+        releaseYear: 2026,
         minPrice: 1_000_000,
         maxPrice: 4_000_000,
         preorder: true,
@@ -30,6 +72,10 @@ describe('catalog query helpers', () => {
       series: { slug: 'frieren-beyond-journeys-end' },
       categories: { some: { category: { slug: 'scale-figure' } } },
       scale: '1/7',
+      releaseDate: {
+        gte: new Date('2026-01-01T00:00:00.000Z'),
+        lt: new Date('2027-01-01T00:00:00.000Z'),
+      },
       priceVnd: { gte: 1_000_000, lte: 4_000_000 },
       isPreorder: true,
       isFeatured: true,

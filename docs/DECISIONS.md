@@ -2,6 +2,13 @@
 
 Append one entry per decision: date, decision, reason, alternatives considered.
 
+## 2026-11-08 — Catalog discovery hub
+
+- Add a dedicated collection-discovery page that groups live published catalog facets by figure type, series, manufacturer, and release year, plus links to supported catalog journeys such as new arrivals, preorders, featured items, and simulated promotions.
+- Link product taxonomy badges to their corresponding catalog filters and expose discovery from the shared header, footer, and mobile navigation. Treat catalog/product pages as part of the same discovery destination in the mobile nav, while keeping a direct catalog action on the discovery page.
+- Keep all counts sourced from catalog facets, clearly label release dates/prices as simulated, and do not invent physical store, news, or transaction data.
+- Alternatives considered: reproduce a competitor's mega-menu or create store/news flows without local data. Prefer an original editorial layout that connects only to existing catalog and help functionality.
+
 ## 2026-11-08 — Mobile storefront navigation and local product galleries
 
 - Keep one responsive storefront, with a five-destination fixed bottom navigation on narrow screens and the existing full navigation/search actions on desktop. Reserve bottom safe-area space and keep the global skip link and visible focus behavior.
@@ -10,6 +17,14 @@ Append one entry per decision: date, decision, reason, alternatives considered.
 - Support up to four optional product gallery images named `<slug>-2.webp` through `<slug>-5.webp` in the ignored local-images directory. Keep self-made placeholders as the fallback and do not duplicate images to imply a gallery.
 - Add help copy only from existing simulation policies. Payments, shipping, product authenticity, warranty, and returns remain explicitly non-real.
 - Alternatives considered: use a third-party storefront/gallery asset, add schema migrations for extra local images, or show repeated placeholders. Keep images local and ignored to respect the public repository image policy and avoid database changes.
+
+## 2026-11-08 — Catalog release-year navigation and review signals
+
+- Add release-year filters and published-product counts from PostgreSQL, alongside existing category, series, and brand facets. Keep arbitrary release years out of the UI; expose only years that have published products.
+- Show mobile sorting separately from the filter dialog and render removable chips for currently active search/filter criteria. Removing a chip preserves other criteria and resets pagination.
+- Add approved-review average/count summaries to catalog cards in one grouped query per result batch; never include pending or rejected reviews.
+- Explain preorder price, simulated deposit, remaining amount, and expected release date together. Label each as demo information and never present the deposit as a real payment action.
+- Alternatives considered: add hand-maintained year links, infer review scores from all submissions, or show an orderable preorder flow. Prefer live published catalog data, approved-only reviews, and transparent informational preorder presentation.
 
 ## 2026-11-08 — Support keyboard navigation throughout the storefront
 

@@ -8,6 +8,7 @@ export interface CatalogFilters {
   series?: string;
   category?: string;
   scale?: string;
+  releaseYear?: number;
   minPrice?: number;
   maxPrice?: number;
   availability?: Availability;
@@ -29,6 +30,12 @@ export function buildCatalogWhere(
   if (filters.series) where.series = { slug: filters.series };
   if (filters.category) where.categories = { some: { category: { slug: filters.category } } };
   if (filters.scale) where.scale = filters.scale;
+  if (filters.releaseYear !== undefined) {
+    where.releaseDate = {
+      gte: new Date(Date.UTC(filters.releaseYear, 0, 1)),
+      lt: new Date(Date.UTC(filters.releaseYear + 1, 0, 1)),
+    };
+  }
   if (filters.minPrice !== undefined || filters.maxPrice !== undefined) {
     where.priceVnd = {
       ...(filters.minPrice !== undefined ? { gte: filters.minPrice } : {}),

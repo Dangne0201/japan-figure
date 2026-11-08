@@ -36,10 +36,13 @@ function selectedFilters(values: SearchParams): SelectedFilters {
       'series',
       'category',
       'scale',
+      'releaseYear',
       'minPrice',
       'maxPrice',
       'availability',
       'preorder',
+      'featured',
+      'newArrival',
       'saleOnly',
       'sort',
     ]

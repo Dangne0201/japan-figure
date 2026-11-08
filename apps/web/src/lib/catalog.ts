@@ -15,6 +15,8 @@ export interface ProductCard {
   isNewArrival: boolean;
   stock: number;
   availability: 'in-stock' | 'sold-out';
+  averageRating: number | null;
+  reviewCount: number;
   brand: { slug: string; name: string };
   series: { slug: string; name: string };
   categories: Array<{ slug: string; name: string }>;
@@ -33,6 +35,7 @@ export interface CatalogFacets {
   series: Array<{ slug: string; name: string; productCount: number }>;
   categories: Array<{ slug: string; name: string; productCount: number }>;
   scales: string[];
+  releaseYears: Array<{ year: number; productCount: number }>;
 }
 
 export interface CatalogPage {
