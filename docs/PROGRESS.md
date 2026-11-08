@@ -2,7 +2,7 @@
 
 ## Current phase
 
-Phase 6 Part 2 engineering and local verification are complete. The combined Phase 5b/6 changes are committed and published directly to `main` as `fd5e1e2`.
+Phase 6 Part 2 engineering is complete. Follow-up release hardening is being published directly to `main`; the base Phase 5b/6 work is recorded at `fd5e1e2`.
 
 ## Completed
 
@@ -91,6 +91,7 @@ Phase 6 Part 2 engineering and local verification are complete. The combined Pha
 - Built and tested the production Compose images. That check exposed that the production worker did not receive `COOKIE_SECURE`; added the missing environment variable and verified all seven production-style services healthy.
 - Mobile Lighthouse against the production web image: Performance 98, Accessibility 100, Best Practices 100, SEO 100; LCP 1.1 s, CLS 0, TBT 150 ms, and no console or color-contrast findings. Fixed the search combobox ARIA role, accessible link names, small-text contrast, and added a self-made SVG app icon. This local HTTP audit used production images but does not validate TLS or a physical phone.
 - Final local checks: API 24 suites/90 tests with configured coverage floors met, web 6/6 tests, API/web builds, lint, formatting, Compose configuration, and API e2e 4/4.
+- The first follow-up CI run exposed a hard-coded e2e `Origin` that differed from CI's configured `WEB_ORIGIN`. Updated the e2e setup to use the app's validated origin and reproduced CI with isolated PostgreSQL/Redis, all 15 migrations and seed: e2e passes 4/4 with no leftover test accounts. The latest GitHub Actions run is pending.
 - A limited secret hygiene check found no tracked `.env` and no common private-key/provider-token patterns in reachable Git history.
 
 ## Known issues and limits
@@ -105,4 +106,4 @@ Phase 6 Part 2 engineering and local verification are complete. The combined Pha
 
 ## Next step
 
-Next: publish the verified follow-up directly to `main` and confirm CI. The owner should then check the storefront on a physical phone and review the local HTTP/TLS limitations noted above.
+Next: publish the e2e-origin fix directly to `main` and confirm CI. The owner should then check the storefront on a physical phone and review the local HTTP/TLS limitations noted above.

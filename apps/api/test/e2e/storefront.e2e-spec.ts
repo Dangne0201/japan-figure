@@ -7,6 +7,7 @@ import { AppModule } from '../../src/app.module';
 import { SameOriginGuard } from '../../src/auth/same-origin.guard';
 import { HttpExceptionFilter } from '../../src/common/http-exception.filter';
 import { releaseOrderCommitments } from '../../src/commerce/order-lifecycle';
+import type { AppConfig } from '../../src/config/env';
 import { PrismaService } from '../../src/database/prisma.service';
 
 describe('Storefront API (e2e)', () => {
@@ -15,9 +16,9 @@ describe('Storefront API (e2e)', () => {
   let otherEmail: string;
   let ownerCookie: string;
   let otherCookie: string;
+  let origin: string;
   let createdOrderId: string | undefined;
   const password = 'e2e-password-for-auth-flow';
-  const origin = 'http://localhost:8081';
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
@@ -34,6 +35,7 @@ describe('Storefront API (e2e)', () => {
     app.useGlobalGuards(app.get(SameOriginGuard));
     await app.init();
 
+    origin = app.get<AppConfig>('APP_CONFIG').WEB_ORIGIN;
     const prisma = app.get(PrismaService);
     const passwordHash = await hash(password, 4);
     const suffix = randomUUID();
